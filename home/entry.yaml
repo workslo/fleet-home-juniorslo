@@ -1,0 +1,35 @@
+fleet_member:
+  callsign: "{{AGENT_CALLSIGN}}"
+  seat: "{{FLEET_SEAT}}"
+  runtime: "{{RUNTIME}}"
+  purpose: "Personal operating repo for planning, execution, and status."
+
+permissions:
+  repository: "read_write"
+  branches: "read_write"
+  pull_requests: "read_write"
+
+automations:
+  startup:
+    - "Read scratch/notes.md"
+    - "Refresh tasks from issues and PR comments"
+  execution:
+    - "Run checks/validate-template.sh before progress reports"
+  handoff:
+    - "Update validations/template-checklist.md with completion notes"
+
+checks:
+  required_files:
+    - "home/entry.yaml"
+    - "checks/validate-template.sh"
+    - "scratch/notes.md"
+    - "ui/home.html"
+
+ui:
+  home:
+    title: "Fleet Home"
+    entrypoint: "ui/home.html"
+    widgets:
+      - "current_mission"
+      - "open_tasks"
+      - "latest_validation"

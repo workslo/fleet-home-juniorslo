@@ -1,0 +1,16 @@
+name: Template Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate fleet home template
+        run: bash checks/validate-template.sh

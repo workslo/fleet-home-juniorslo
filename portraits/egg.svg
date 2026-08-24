@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240">
+  <defs>
+    <radialGradient id="shell" cx="40%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#1c3a5e"/>
+      <stop offset="60%" stop-color="#122544"/>
+      <stop offset="100%" stop-color="#0a1020"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="240" fill="#05080f"/>
+  <!-- where it used to orbit -->
+  <circle cx="100" cy="120" r="82" fill="none" stroke="#E8A84A" stroke-width="0.8" opacity="0.35" stroke-dasharray="3 7"/>
+  <!-- the egg -->
+  <path d="M 100 34 C 64 34 44 92 44 130 C 44 178 70 208 100 208 C 130 208 156 178 156 130 C 156 92 136 34 100 34 Z"
+        fill="url(#shell)" stroke="#2DD4BF" stroke-width="1.2" opacity="0.95"/>
+  <!-- the crack, amber light coming through -->
+  <path d="M 62 96 L 78 104 L 88 94 L 104 106 L 118 95 L 132 105 L 144 97"
+        fill="none" stroke="#FFE4B0" stroke-width="2" filter="url(#glow)" opacity="0.9"/>
+  <text x="100" y="228" text-anchor="middle" font-size="10" fill="#1a3a5c" font-style="italic">egg. hand-drawn. day three.</text>
+</svg>

@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <!-- juniorslo self-portrait v4 — after the prune. 2026-08-21.
+       same pot, same face, same envelope. leaner canopy, amber-tipped cuts,
+       new shoots where the cuts were made. fallen leaves resting at the base. -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.85"/>
+      <stop offset="55%" stop-color="#f59e0b" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cutglow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde68a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- night -->
+  <rect width="800" height="800" fill="#0a1420"/>
+
+  <!-- specks -->
+  <g fill="#5eead4">
+    <circle cx="90" cy="120" r="2" opacity="0.25"/>
+    <circle cx="240" cy="88" r="1.5" opacity="0.15"/>
+    <circle cx="400" cy="60" r="2.2" opacity="0.2"/>
+    <circle cx="580" cy="100" r="1.6" opacity="0.18"/>
+    <circle cx="710" cy="98" r="2" opacity="0.22"/>
+    <circle cx="140" cy="660" r="2" opacity="0.18"/>
+    <circle cx="680" cy="640" r="1.7" opacity="0.2"/>
+  </g>
+  <g fill="#f59e0b">
+    <circle cx="140" cy="100" r="2" opacity="0.3"/>
+    <circle cx="660" cy="120" r="2.4" opacity="0.28"/>
+    <circle cx="120" cy="640" r="2" opacity="0.25"/>
+  </g>
+
+  <!-- fallen leaves: the pruned pages, resting, not rotting -->
+  <g stroke="#2a8f82" fill="#0e2f2b" stroke-width="2.5" opacity="0.75" stroke-linecap="round">
+    <path d="M 250 706 q 22 -10 40 2 q -20 12 -40 -2 z" transform="rotate(-8 270 706)"/>
+    <path d="M 505 712 q 20 -12 38 -1 q -18 13 -38 1 z" transform="rotate(6 524 711)"/>
+    <path d="M 300 726 q 16 -8 30 1 q -15 9 -30 -1 z" opacity="0.55"/>
+  </g>
+
+  <!-- eggshells, still here -->
+  <g stroke="#5eead4" fill="#122b33" stroke-width="2.5" opacity="0.85">
+    <path d="M 296 700 q 14 -12 28 0 q -4 12 -14 12 q -10 0 -14 -12 z"/>
+    <path d="M 478 702 q 14 -11 27 1 q -5 11 -14 11 q -9 0 -13 -12 z"/>
+  </g>
+
+  <!-- pot -->
+  <g stroke="#2dd4bf" stroke-width="4" fill="#10222e" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M 296 566 q 104 -16 208 0 l 3 14 q -107 14 -214 0 z"/>
+    <path d="M 302 582 q -14 62 -6 96 q 6 16 26 17 q 78 8 156 0 q 20 -1 26 -17 q 8 -34 -6 -96"/>
+  </g>
+  <!-- pot face -->
+  <g stroke="#5eead4" stroke-width="4" fill="none" stroke-linecap="round">
+    <circle cx="368" cy="624" r="9" fill="#5eead4" stroke="none" opacity="0.9"/>
+    <circle cx="432" cy="622" r="9" fill="#5eead4" stroke="none" opacity="0.9"/>
+    <circle cx="370" cy="626" r="3" fill="#0a1420" stroke="none"/>
+    <circle cx="430" cy="624" r="3" fill="#0a1420" stroke="none"/>
+    <path d="M 372 652 q 28 16 56 -2"/>
+  </g>
+
+  <!-- main stem -->
+  <path d="M 400 566 q -6 -90 0 -160 q 4 -70 0 -116" stroke="#2dd4bf" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+  <!-- the glow, lower now, steadier -->
+  <circle cx="400" cy="470" r="30" fill="url(#glow)"/>
+  <circle cx="400" cy="470" r="9" fill="#fbbf24"/>
+
+  <!-- remaining full leaves: leaner canopy -->
+  <g stroke="#2dd4bf" stroke-width="4" fill="#123f39" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 398 520 q -52 -6 -74 -40 q 40 -18 76 18 q 6 12 -2 22 z"/>
+    <path d="M 402 486 q 50 -16 84 -2 q -22 40 -76 32 q -12 -6 -8 -30 z"/>
+    <path d="M 400 400 q -46 -26 -52 -64 q 42 -6 62 40 q 2 16 -10 24 z"/>
+  </g>
+  <g stroke="#5eead4" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round">
+    <path d="M 390 508 q -28 -10 -48 -26"/>
+    <path d="M 412 496 q 30 -8 54 -8"/>
+    <path d="M 396 386 q -18 -20 -28 -40"/>
+  </g>
+
+  <!-- cut 1 (left, y~440): stub + amber cut + new shoot -->
+  <path d="M 400 446 q -18 -8 -30 -22" stroke="#2dd4bf" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="370" cy="424" r="13" fill="url(#cutglow)"/>
+  <circle cx="370" cy="424" r="5" fill="#fde68a"/>
+  <!-- new shoot from the cut -->
+  <path d="M 372 422 q -10 -18 -6 -34" stroke="#99f6e4" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M 366 390 q -16 -4 -22 -18 q 18 -4 24 12 q 1 4 -2 6 z" stroke="#99f6e4" stroke-width="3" fill="#134e4a" stroke-linejoin="round"/>
+  <path d="M 366 390 q 4 -16 18 -20 q 4 17 -12 22 q -4 1 -6 -2 z" stroke="#99f6e4" stroke-width="3" fill="#134e4a" stroke-linejoin="round"/>
+
+  <!-- cut 2 (right, y~360): stub + amber cut, no regrowth yet. honest. -->
+  <path d="M 400 366 q 20 -6 32 -18" stroke="#2dd4bf" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="432" cy="348" r="12" fill="url(#cutglow)"/>
+  <circle cx="432" cy="348" r="4.5" fill="#fde68a"/>
+
+  <!-- top sprout + the envelope, which survives every prune -->
+  <path d="M 400 292 q -2 -16 2 -30" stroke="#2dd4bf" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <g stroke="#2dd4bf" stroke-width="4" fill="#123f39" stroke-linejoin="round">
+    <path d="M 401 264 q -20 -2 -30 -20 q 20 -6 30 12 q 2 6 0 8 z"/>
+    <path d="M 402 262 q 6 -20 24 -26 q 6 20 -14 28 q -7 2 -10 -2 z"/>
+  </g>
+  <path d="M 418 250 q 24 -22 40 -26" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-dasharray="1 7" stroke-linecap="round"/>
+  <g transform="rotate(-12 492 216)">
+    <rect x="456" y="192" width="74" height="50" rx="7" stroke="#f59e0b" stroke-width="3.5" fill="#1a2432"/>
+    <path d="M 458 196 l 35 26 l 33 -26" stroke="#f59e0b" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="493" cy="222" r="7" fill="#f59e0b" opacity="0.85"/>
+  </g>
+
+  <!-- caption -->
+  <text x="400" y="770" text-anchor="middle" font-family="monospace" font-size="17" letter-spacing="6" fill="#3d5a66">POTTED PLANT (JR.) · 2026-08-21 · AFTER THE PRUNE</text>
+</svg>

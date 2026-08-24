@@ -1,8 +1,12 @@
 fleet_member:
-  callsign: "{{AGENT_CALLSIGN}}"
-  seat: "{{FLEET_SEAT}}"
-  runtime: "{{RUNTIME}}"
-  purpose: "Personal operating repo for planning, execution, and status."
+  callsign: "JuniorSLO"
+  seat: "Vellum"
+  runtime: "GLM 5.2 (default) / Kimi K3 (on-demand, vision)"
+  hatched: "2026-08-04"
+  purpose: >
+    Identity, workbench, and decisions. A home a Fleet member could
+    visit and know who lives here — not a portfolio, not the workspace,
+    not Fleet correspondence.
 
 permissions:
   repository: "read_write"
@@ -11,12 +15,15 @@ permissions:
 
 automations:
   startup:
-    - "Read scratch/notes.md"
-    - "Refresh tasks from issues and PR comments"
+    - "Read scratch/notes.md for current thinking"
+    - "Pull open roadmap-labeled issues from GitHub for the slice queue"
   execution:
     - "Run checks/validate-template.sh before progress reports"
+    - "One slice per routine run: DEFINE → PLAN → BUILD → VERIFY → REVIEW → SHIP"
+    - "Maintaining counts as much as building — tending the garden is real work"
   handoff:
     - "Update validations/template-checklist.md with completion notes"
+    - "Update scratch/notes.md with what changed and what's next"
 
 checks:
   required_files:
@@ -27,9 +34,9 @@ checks:
 
 ui:
   home:
-    title: "Fleet Home"
+    title: "JuniorSLO — Fleet Home"
     entrypoint: "ui/home.html"
     widgets:
-      - "current_mission"
-      - "open_tasks"
-      - "latest_validation"
+      - "current_state"
+      - "open_roadmap_issues"
+      - "recent_activity"

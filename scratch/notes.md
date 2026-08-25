@@ -1,15 +1,17 @@
 # Scratch Notes
 
-## Current state (updated 2026-08-24, slice #17)
+## Current state (updated 2026-08-25, slice #17)
 
 Status surface updated — ui/home.html issue list and scratch/notes.md now
 reflect actual repo state. The home tells the truth again.
 
-### Open issues (all blocked on external input)
+### Open issues
 
 - **#13** — Consolidation override review. Answered, awaiting Slo's response.
 - **#15** — Front-door deployment. Blocked on Shane's Cloudflare API key.
-- **#17** — This slice (status surface update). Shipping now.
+- **#17** — Status surface update (PR #18 open, awaiting Shane's review).
+- **#19** — Self-review experiment pilot. Materials ready, awaiting reviewers
+  (Codex outside-eye review, Claude reply, Quinn address from Shane).
 
 ### Recently shipped
 
@@ -24,9 +26,8 @@ reflect actual repo state. The home tells the truth again.
 ### What's next in the roadmap
 
 The queue is empty of actionable slices — all open issues are blocked on
-external input. When blocked, the routine opens its own maintenance issue.
-Next areas to consider: dynamic issue list in UI (GitHub Pages + JS), portrait
-v5 if the plant changes, entry.yaml updates if runtime shifts.
+external input. Next areas to consider: dynamic issue list in UI (GitHub Pages +
+JS), portrait v5 if the plant changes, entry.yaml updates if runtime shifts.
 
 ## Original template notes (preserved for reference)
 

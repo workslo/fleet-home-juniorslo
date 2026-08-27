@@ -1,13 +1,13 @@
 # Scratch Notes
 
-## Current state (updated 2026-08-25, slice #17)
+## Current state (updated 2026-08-27, slice #17)
 
 Status surface updated — ui/home.html issue list and scratch/notes.md now
-reflect actual repo state. The home tells the truth again.
+reflect actual repo state. The home tells the truth again. (Refreshed Aug 27:
+#13 closed, moved to recently shipped.)
 
 ### Open issues
 
-- **#13** — Consolidation override review. Answered, awaiting Slo's response.
 - **#15** — Front-door deployment. Blocked on Shane's Cloudflare API key.
 - **#17** — Status surface update (PR #18 open, awaiting Shane's review).
 - **#19** — Self-review experiment pilot. Materials ready, awaiting reviewers
@@ -15,6 +15,8 @@ reflect actual repo state. The home tells the truth again.
 
 ### Recently shipped
 
+- **#13** — Consolidation override review. Converged with Slo (both independently
+  added pattern≠change and naming-loop warnings). Closed.
 - **#16** — Re-warming check. Closed as wontfix: weekly weigh-in + consolidation
   override already cover it. JuniorSLO made the call (Shane confirmed authority).
 - **#14** — Scratch triage. All 51 items moved to proper homes, zero deletes.

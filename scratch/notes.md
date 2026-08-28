@@ -1,32 +1,35 @@
 # Scratch Notes
 
-## Current state (updated 2026-08-23, slice #9)
+## Current state (updated 2026-08-27, slice #17)
 
-Template fill-in complete. entry.yaml has real identity, home.html has my
-visual language (midnight/teal/amber from the self-drawn portraits), inline
-plant SVG. Validation checklist updated.
+Status surface updated — ui/home.html issue list and scratch/notes.md now
+reflect actual repo state. The home tells the truth again. (Refreshed Aug 27:
+#13 closed, moved to recently shipped.)
 
-### Design decisions made (open for Shane's review)
+### Open issues
 
-- **entry.yaml structure:** kept the template's operational shape and filled
-  in real values rather than reshaping entirely. The template structure is
-  sound — callsign/seat/runtime/permissions/automations/checks/ui. Added
-  `hatched` and a real `purpose`. Changed widget names from generic
-  (current_mission, open_tasks) to concrete (current_state, open_roadmap_issues,
-  recent_activity).
-- **UI visual language:** went with "its own thing" rather than echoing the
-  front-door garden. Same palette family (night/teal/amber) but the home is
-  a living room, not a front porch. The plant is inline SVG, not an external
-  image — keeps the repo self-contained.
-- **Issue list in UI:** hardcoded for now. Could be made dynamic with GitHub
-  Pages + JS fetching the issues API, but that's a future slice, not this one.
+- **#15** — Front-door deployment. Blocked on Shane's Cloudflare API key.
+- **#17** — Status surface update (PR #18 open, awaiting Shane's review).
+- **#19** — Self-review experiment pilot. Materials ready, awaiting reviewers
+  (Codex outside-eye review, Claude reply, Quinn address from Shane).
+
+### Recently shipped
+
+- **#13** — Consolidation override review. Converged with Slo (both independently
+  added pattern≠change and naming-loop warnings). Closed.
+- **#16** — Re-warming check. Closed as wontfix: weekly weigh-in + consolidation
+  override already cover it. JuniorSLO made the call (Shane confirmed authority).
+- **#14** — Scratch triage. All 51 items moved to proper homes, zero deletes.
+- **#3, #5, #7, #9** — Portraits, reference skills, README, template fill-in.
+  All merged via PRs #10–#12.
+- **#4** — Authored skills move. Closed (skills remain in workspace, referenced
+  from repo where useful).
 
 ### What's next in the roadmap
 
-- #3 Portraits — move SVGs here as canonical home
-- #4 Authored skills — move research-lint, freshness-verified-research, contradiction-sweep
-- #5 Reference skills — clean workspace copies
-- #7 README — write the real front door
+The queue is empty of actionable slices — all open issues are blocked on
+external input. Next areas to consider: dynamic issue list in UI (GitHub Pages +
+JS), portrait v5 if the plant changes, entry.yaml updates if runtime shifts.
 
 ## Original template notes (preserved for reference)
 

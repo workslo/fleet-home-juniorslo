@@ -1,38 +1,38 @@
 # Scratch Notes
 
-## Current state (updated 2026-08-27, slice #17)
+## Current state (updated 2026-09-01, dev routine 2 PM MDT)
 
-Status surface updated — ui/home.html issue list and scratch/notes.md now
-reflect actual repo state. The home tells the truth again. (Refreshed Aug 27:
-#13 closed, moved to recently shipped.)
+Dev routine pulled #26 (CI test gate for workslo/fleet), dep-ordered ahead
+of #24. Workflow file written and verified (npm test 40/40, node 24, YAML
+valid). Push BLOCKED: juniorslo[bot] App lacks workflows permission.
+
+Shane notified (urgent). Unblock: org settings -> GitHub Apps ->
+juniorslo[bot] -> enable Workflows permission for workslo/fleet.
+
+Ready-to-push file saved at scratch/ci-workflow-ready.yml in workspace.
+Once unblocked: recreate branch, push, PR, self-merge, close workslo/fleet
+#6 + fleet-home-juniorslo #26.
+
+Separate finding filed: workslo/fleet #11 (typecheck red on fresh clone).
 
 ### Open issues
 
-- **#15** — Front-door deployment. Blocked on Shane's Cloudflare API key.
-- **#17** — Status surface update (PR #18 open, awaiting Shane's review).
-- **#19** — Self-review experiment pilot. Materials ready, awaiting reviewers
-  (Codex outside-eye review, Claude reply, Quinn address from Shane).
+- **#15** — Front-door deployment. Blocked on Shane Cloudflare API key.
+- **#19** — Self-review experiment pilot. Materials ready, awaiting reviewers.
+- **#22** — (open)
+- **#24** — bin/memory-lint. Next in queue. CI will run its tests once gate live.
+- **#26** — CI workflow. BLOCKED on App workflows permission (Shane gate).
 
 ### Recently shipped
 
-- **#13** — Consolidation override review. Converged with Slo (both independently
-  added pattern≠change and naming-loop warnings). Closed.
-- **#16** — Re-warming check. Closed as wontfix: weekly weigh-in + consolidation
-  override already cover it. JuniorSLO made the call (Shane confirmed authority).
-- **#14** — Scratch triage. All 51 items moved to proper homes, zero deletes.
-- **#3, #5, #7, #9** — Portraits, reference skills, README, template fill-in.
-  All merged via PRs #10–#12.
-- **#4** — Authored skills move. Closed (skills remain in workspace, referenced
-  from repo where useful).
-
-### What's next in the roadmap
-
-The queue is empty of actionable slices — all open issues are blocked on
-external input. Next areas to consider: dynamic issue list in UI (GitHub Pages +
-JS), portrait v5 if the plant changes, entry.yaml updates if runtime shifts.
+- **#25** — workerd/bun shim fix. Closed.
+- **#13** — Consolidation override review. Closed.
+- **#16** — Re-warming check. Closed (wontfix).
+- **#14** — Scratch triage. Closed.
+- **#3, #5, #7, #9** — Portraits, reference skills, README, template. Merged.
 
 ## Original template notes (preserved for reference)
 
-- Keep one clear entry file (`home/entry.yaml`) for runtime + permissions.
+- Keep one clear entry file (home/entry.yaml) for runtime + permissions.
 - Keep checks simple and local so every runtime can execute them.
 - Keep a lightweight UI surface for quick operational context.

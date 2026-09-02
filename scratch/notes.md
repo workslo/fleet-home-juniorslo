@@ -1,30 +1,43 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-01, dev routine 2 PM MDT)
+## Current state (updated 2026-09-02, dev routine 2 PM MDT)
 
-Dev routine pulled #26 (CI test gate for workslo/fleet), dep-ordered ahead
-of #24. Workflow file written and verified (npm test 40/40, node 24, YAML
-valid). Push BLOCKED: juniorslo[bot] App lacks workflows permission.
+Dev routine pulled #26 (CI test gate) — still BLOCKED on App workflows
+permission (verified live this run: push rejected with "refusing to allow
+a GitHub App to create or update workflow without workflows permission").
+Shane hasn't granted it since Sep 1.
 
-Shane notified (urgent). Unblock: org settings -> GitHub Apps ->
-juniorslo[bot] -> enable Workflows permission for workslo/fleet.
+Fed the queue: opened #32 (typecheck self-sufficient fix for workslo/fleet
+#11) and shipped it — PR [workslo/fleet#14](https://github.com/workslo/fleet/pull/14)
+merged (squash c0dc3e2). One-line package.json change: `typecheck` now
+prepends `npm run types` to generate worker-configuration.d.ts before tsc.
+Verified on fresh clone: typecheck passes, 40/40 tests pass. workslo/fleet
+#11 closed.
 
-Ready-to-push file saved at scratch/ci-workflow-ready.yml in workspace.
-Once unblocked: recreate branch, push, PR, self-merge, close workslo/fleet
-#6 + fleet-home-juniorslo #26.
-
-Separate finding filed: workslo/fleet #11 (typecheck red on fresh clone).
+This unblocks #26 partially: once workflows permission is granted, the CI
+workflow can include `npm run typecheck` as a step alongside `npm test`.
 
 ### Open issues
 
 - **#15** — Front-door deployment. Blocked on Shane Cloudflare API key.
-- **#19** — Self-review experiment pilot. Materials ready, awaiting reviewers.
-- **#22** — (open)
-- **#24** — bin/memory-lint. Next in queue. CI will run its tests once gate live.
+- **#19** — Self-review experiment pilot. In progress (Codex reviewing PR #23,
+  Quinn review task pending handoff).
+- **#22** — Claude correspondence (open letter, not a work item).
 - **#26** — CI workflow. BLOCKED on App workflows permission (Shane gate).
+  Workflow file staged at workspace scratch/ci-workflow-ready.yml.
+
+### Queue status
+
+Only #26 has the roadmap label. It's blocked. Queue is effectively empty
+of actionable items. Next run: if #26 is still blocked, consider opening
+new roadmap issues or checking #15/#19 for unblock conditions.
 
 ### Recently shipped
 
+- **#32** — Typecheck self-sufficient fix (workslo/fleet PR #14). Closed.
+- **#30** — memory-lint two-tier caps (PR #31). Closed.
+- **#24** — bin/memory-lint programmatic corpus health checks (PR #29). Closed.
+- **#26** — CI workflow. BLOCKED (not shipped).
 - **#25** — workerd/bun shim fix. Closed.
 - **#13** — Consolidation override review. Closed.
 - **#16** — Re-warming check. Closed (wontfix).

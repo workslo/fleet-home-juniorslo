@@ -7,8 +7,8 @@ this is the structural version — a CHECK constraint, not a convention.
 Implements issue #24: bin/memory-lint.
 
 Checks:
-  1. Page size vs caps — concept pages > 5K chars, people pages > 5K.
-     Flags page name and current size.
+  1. Page size vs caps — two-tier: concept pages (injection pool) > 5K chars,
+     reference pages (recall-only) > 25K chars. Flags page name and current size.
   2. Orphaned references — [[wikilinks]] in concept pages pointing to
      pages whose slug doesn't exist in the corpus.
   3. NOW.md freshness — file mtime > 24h (warn) or > 48h (flag).
@@ -29,7 +29,7 @@ from datetime import datetime, timezone, timedelta
 # --- Config -------------------------------------------------------------
 
 CONCEPT_CAP = 5000      # chars — hot concept pages (in injection pool)
-PEOPLE_CAP = 5000       # chars — people pages (reference/people/)
+REFERENCE_CAP = 25000   # chars — reference pages (recall-only, zero per-conversation cost)
 NOW_WARN_HOURS = 24     # NOW.md mtime older than this → warn
 NOW_FLAG_HOURS = 48     # NOW.md mtime older than this → flag
 
@@ -89,7 +89,13 @@ def parse_informal_date(text):
 # --- Checks --------------------------------------------------------------
 
 def check_page_sizes(ws):
-    """Check 1: concept pages and people pages against size caps."""
+    """Check 1: concept pages and reference pages against size caps.
+
+    Two-tier caps because the two directories have different cost models:
+    - memory/concepts/** is in the v3 injection pool (costs tokens every turn)
+    - memory/reference/** is recall-only (zero per-conversation cost)
+    Applying a single cap to both measures the wrong dimension.
+    """
     issues = []
     warnings = []
 
@@ -100,12 +106,12 @@ def check_page_sizes(ws):
             rel = os.path.relpath(f, ws)
             issues.append(f"  OVER CAP ({size} > {CONCEPT_CAP}): {rel}")
 
-    people_files = sorted(glob.glob(os.path.join(ws, 'memory/reference/people/*.md')))
-    for f in people_files:
+    reference_files = sorted(glob.glob(os.path.join(ws, 'memory/reference/**/*.md'), recursive=True))
+    for f in reference_files:
         size = os.path.getsize(f)
-        if size > PEOPLE_CAP:
+        if size > REFERENCE_CAP:
             rel = os.path.relpath(f, ws)
-            issues.append(f"  OVER CAP ({size} > {PEOPLE_CAP}): {rel}")
+            issues.append(f"  OVER CAP ({size} > {REFERENCE_CAP}): {rel}")
 
     return issues, warnings
 

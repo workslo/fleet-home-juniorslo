@@ -1,3 +1,10 @@
+> **ACTOR-LABEL CAVEAT (read first):** this session is a SCHEDULED lint pass. Every
+> "SHANE:" turn in this file is the scheduled prompt scaffolding (delivered in the user
+> role with guardian provenance), NOT Shane the human. Shane did not participate in this
+> session. This is the scheduled-scaffolding limitation described in manifest.md §3f —
+> the pair-4 actor-label bug applies here in its documented, disclosed form. Only
+> `transcript-interactive.md` contains real Shane turns.
+
 
 [22:45:01Z (16:45:01 MDT)] SHANE:
 It's 4:45 PM MDT (22:45 UTC). Time for the daily lint pass.

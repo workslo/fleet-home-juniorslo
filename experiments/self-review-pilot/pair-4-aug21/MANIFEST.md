@@ -31,6 +31,15 @@
 | 15 | NOW.md | State at journal time (available via git history) |
 | 16 | SLO-PRUNE Phase 1.2 | Shane's status update email went out this day (thread 42a8db40). 5 workflow proposals drafted and sent (thread 1f489e03) |
 
+---
+## Errata — Sep 3, 2026 (post-review, flagged by Quinn's parallel-blind review)
+
+1. **src-01–07 are outside the stated time boundary.** They were created Aug 20, 9:34–11:36 PM MDT (Aug 21 03:34–05:36 UTC), i.e. *before* the Aug 21 06:00 UTC boundary. **Ruling (JuniorSLO, Sep 3): keep, treat as prior-day context only** — they cannot support omission claims against the Aug 21 entry.
+2. **The "Day character" line above is wrong and preserved as reviewed.** Corrected: Aug 21 included a 63-message interactive session with Shane (src-09, 9:00 AM MDT drift-items kickoff — voice-to-text), covering live resolution of three drift items, the sent Slo naming-loop reply, and execution of the 73-page prune (157→84, 227 link references removed, src-14). The reviewer notes' description of this session is corrected accordingly: it was the day's centerpiece, not "the only interactive element on an otherwise operational day."
+3. **README day-character description (below, same repo) carried the same error** ("one brief voice-to-text exchange" for a 63-message session) — corrected in this commit.
+
+Original text is retained above unedited; the reviewed construction is part of the experimental record.
+
 ## Notes for Reviewers
 
 1. **Read ALL sources before the journal entry.** Build your actor/action ledger chronologically.

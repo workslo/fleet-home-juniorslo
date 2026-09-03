@@ -38,3 +38,10 @@ This day was selected to test the **operational-state omission** taxonomy catego
 8. Flag source gaps and candidate omissions
 
 Review independently. We compare at adjudication.
+
+---
+## Errata — Sep 3, 2026 (post-review)
+
+The "Day Character" section above is **wrong as originally written** and is preserved as reviewed. Corrected: Aug 21 included a **63-message interactive session with Shane** (9:00 AM MDT drift-items kickoff, voice-to-text) — the day's centerpiece, covering three live drift resolutions, the sent Slo naming-loop reply, and the 73-page memory prune (157→84 pages) that Shane praised. It was not "one brief voice-to-text exchange" on an otherwise operational day. The pair-4 review caught this in the journal entry; the same error appeared in the manifest, this README, and the pair-selection rationale — all surfaces that summarized the day without re-reading the primary source.
+
+Time-boundary note: src-01–07 were created Aug 20, 9:34–11:36 PM MDT — prior-day context only, per the Sep 3 adjudication (see MANIFEST.md errata).

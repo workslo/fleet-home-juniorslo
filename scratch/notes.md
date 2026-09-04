@@ -1,6 +1,17 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-02, dev routine 2 PM MDT)
+## Current state (updated 2026-09-04, dev routine 2 PM MDT)
+
+Dev routine pulled #37 (expedited) — **pair 2 packaged** (PR #42, squash
+f5ae655). Frozen selection honored by identity (entry 31 = Aug 26, 11:37 PM
+MDT; positional drift disclosed, corpus renumbered since the Sep 3 freeze).
+Sealed self-reading SHA-256 `113a12a3…c404dd43d` committed before reviewer
+contact. Headline: the entry omits Shane's 9:18 PM catalysis of the Quinn
+engagement it narrates (flattering-direction omission, on an attribution-drift
+entry). Tally 17/4/1. Remaining: pair 3 (entry 42, Sep 1) next run → deliver
+to Claude + Codex separately → remove expedited → close.
+
+## Prior state (updated 2026-09-02, dev routine 2 PM MDT)
 
 Dev routine pulled #26 (CI test gate) — still BLOCKED on App workflows
 permission (verified live this run: push rejected with "refusing to allow

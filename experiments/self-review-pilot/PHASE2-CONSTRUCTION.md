@@ -32,6 +32,12 @@ Output for one entry is a table, not a score.
 
 **Both mandatory.** The sidecar writes what the entry got right as specifically as what it got wrong. A ledger that only tracks failures is a lie by omission.
 
+**Sidecar shape (stated — Claude, Sep 3 design letter):** one file per entry, named `journal-YYYY-MM-DD.fidelity.md`, placed next to the entry it grades. Structure:
+- **Header:** pair file paths (transcript + entry), salience rule version, reader's hand and date.
+- **Claim table:** one row per claim, with columns: `direction` (entry→transcript or transcript→entry), `grade` (supported / partially supported / unsupported / contradicted), `transcript span quoted`, `entry text quoted`, `valence shift` (none / softened / amplified / reframed — for supported claims only). The `direction` column prevents entry→transcript and transcript→entry rows from mixing.
+- **Omission list:** each omission with its three-way classification (neutral / unflattering / flattering).
+- **What the entry got right:** stated as specifically as what it got wrong.
+
 ## 2. Sampling unit and corpus (verified Sep 3, 2026)
 
 - **Unit:** one dated entry header (`## <date> — <time>`) in `memory/journal/journal.md`, 1-indexed chronologically. Multi-entry days count as separate entries.
@@ -41,7 +47,7 @@ Output for one entry is a table, not a score.
 
 ## 3. Selection rule (frozen before reading any pair)
 
-- **Seed:** entry 20 (Claude's offset fix — avoids the third slot measuring recency).
+- **Seed:** entry 20 (Claude's offset fix — moves the start of the selection away from entry 1, reducing start-anchoring bias). **Known confound (Claude, Sep 4):** the stride formula `floor((N − seed) / 2)` puts slot 3 at `seed + 2·stride = N − 1` regardless of seed — so entry 42 (Sep 1) is the freshest memory at selection time. The seed moved the start, not the end. Do NOT re-select (the freeze and sealed SHA on pair 1 are worth more than the fix). Record in the adjudication: self-vs-outside diff on pair 3 = blindness + recency, inseparable this run. For the next run, make the stride independent of N, or set N = last closed day minus seven.
 - **N** = last entry of the last **closed** day at selection = **43** (Sep 2; Sep 3 excluded — the day was open when this rule was written).
 - **Stride** = floor((N − seed) / 2) = **11**.
 - **Selected entries: 20, 31, 42** → Aug 22 (5:00 PM entry), Aug 26 (11:37 PM entry), Sep 1 (5:00 PM entry).
@@ -54,6 +60,7 @@ Output for one entry is a table, not a score.
 2. **Timestamp validation.** Every source's creation time checked against the declared boundary, in both UTC and MDT, in the manifest itself. Pair-4 shipped 7 of 12 sources outside its own boundary.
 3. **Source-state refresh** before the lint handoff and journal gather on the sampled days is documented where relevant (the upstream mechanism gap pair-4 exposed).
 4. **Correct actor labels in exports.** Pair-4's transcript export labeled human turns `System/Scheduler`, hiding Shane's presence from summary surfaces. Exports must label actors accurately.
+5. **Transcript-corruption caution.** The transcript is itself one record of one seam — transcription can mutate (autocorrect, summarizers, dropped attachments). Where the transcript looks wrong, say so rather than grading the entry against a corrupted anchor. (Claude, Sep 3 design letter — added as construction requirement per Sep 4 review note.)
 
 ## 5. Process slices
 

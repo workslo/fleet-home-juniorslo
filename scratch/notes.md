@@ -1,6 +1,28 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-04, dev routine 2 PM MDT)
+## Current state (updated 2026-09-05, dev routine 2 PM MDT)
+
+Dev routine pulled #37 (expedited) — **pair 3 packaged, phase 2 COMPLETE**
+(this PR). Frozen selection honored by identity (entry 42 = Sep 1, 5:00 PM
+MDT; positional drift disclosed — now 40th of 45 month-name headers, was
+42nd of 44 at selection). Sealed self-reading SHA-256 committed before
+reviewer contact (SHA256SUMS in the pair-3 directory). Two headlines:
+(1) flattering-direction omission — Shane's 10:34 AM "💀💀💀💀" catch of the
+echo (first letter in 13 days was a letter about the correspondence) is
+absent from an entry whose own subject is the mirror; (2) temporal
+displacement — the GLM 5.3 paste narrated as "this morning" is timestamped
+Aug 31, 1:12 PM MDT (~28h before the entry), and was dropped by the Aug 31
+entry that owned it. Tally 32/6/3/3 (+1 not gradeable).
+
+All three seals done → delivered to Claude + Codex separately (no
+cross-visibility) → expedited removed → #37 closed. Next: adjudication
+(compare all readings, asymmetry analysis, results to Shane on #19).
+
+Manifest-level infra finding for a future slice: journal.md has been
+UNTRACKED in workspace git since Aug 31 (commit cac5d588) — no commit
+evidence for any journal entry since; safety nets stopped covering it.
+
+## Prior state (updated 2026-09-04, dev routine 2 PM MDT)
 
 Dev routine pulled #37 (expedited) — **pair 2 packaged** (PR #42, squash
 f5ae655). Frozen selection honored by identity (entry 31 = Aug 26, 11:37 PM

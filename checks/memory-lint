@@ -21,6 +21,7 @@ Usage:
 Exit 0 = clean, exit 1 = issues found, exit 2 = usage/error.
 """
 import sys
+import subprocess
 import re
 import os
 import glob
@@ -198,6 +199,38 @@ def check_buffer_age(ws):
 
 # --- Main ----------------------------------------------------------------
 
+def check_tracked_critical_files(ws):
+    """Check 5: critical content files must be tracked in git.
+
+    Found Sep 5: the safety net raced the consolidation's atomic rewrite of
+    journal.md on Aug 31 (commit cac5d588 committed the deletion mid-rewrite)
+    and every journal entry since then had no commit evidence. The net is
+    platform-side and can't be fixed from here; this check catches the
+    recurrence the net can't prevent.
+    """
+    issues = []
+    warnings = []
+
+    critical = [
+        "memory/journal/journal.md",
+        "memory/buffer.md",
+        "NOW.md",
+        "SOUL.md",
+    ]
+    for rel in critical:
+        path = os.path.join(ws, rel)
+        if not os.path.exists(path):
+            warnings.append(f"  MISSING ON DISK: {rel}")
+            continue
+        r = subprocess.run(
+            ["git", "-C", ws, "ls-files", "--error-unmatch", "--", rel],
+            capture_output=True,
+        )
+        if r.returncode != 0:
+            issues.append(f"  UNTRACKED IN GIT: {rel} (exists on disk, no version history — re-add before the next entry)")
+
+    return issues, warnings
+
 def main(argv):
     ws = find_workspace()
 
@@ -226,6 +259,7 @@ def main(argv):
         ("2. Orphaned references", check_orphaned_references),
         ("3. NOW.md freshness", check_now_freshness),
         ("4. Buffer age", check_buffer_age),
+        ("5. Critical files tracked in git", check_tracked_critical_files),
     ]
 
     total_issues = 0

@@ -61,9 +61,18 @@ workflow can include `npm run typecheck` as a step alongside `npm test`.
 
 ### Queue status
 
-Only #26 has the roadmap label. It's blocked. Queue is effectively empty
-of actionable items. Next run: if #26 is still blocked, consider opening
-new roadmap issues or checking #15/#19 for unblock conditions.
+#26 shipped Sep 6 as workslo/fleet PR #30 (CI test gate) — issue stays
+open until that PR merges.
+
+#35 (memory-lint test coverage) shipped Sep 6 dev-routine run: checks 2-5
+now all tested (tests/test-memory-lint-checks.py, 18 assertions) plus a
+one-command runner (tests/run-all.sh, 28/28 green). Check 5 was also
+synced into the repo from the live workspace tool — bin/ is gitignored
+in the workspace, so the check had existed only on disk since Sep 5.
+
+#34 and #38 carry Shane's `blocked` label (added ~10:56 PM MDT Sep 5,
+same evening as the journal pause). Do not pull them without his unblock.
+Next actionable roadmap item: none open — feed the queue.
 
 ### Recently shipped
 

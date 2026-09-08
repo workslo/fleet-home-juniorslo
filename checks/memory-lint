@@ -231,6 +231,99 @@ def check_tracked_critical_files(ws):
 
     return issues, warnings
 
+def check_stamp_consistency(ws):
+    """Check 6: paired local/UTC stamps must agree in the Denver zone.
+
+    Found 3x (Sep 1, Sep 5, Sep 6): passes hand-compose stamps like
+    "9:39 PM MDT (21:39 UTC)" — reading 24h UTC as a PM local time, when
+    21:39 UTC is 3:39 PM MDT. The "use bin/now, never hand-convert"
+    convention decayed three times; this check is the structural version.
+    Surfaces: line 1 of NOW.md, line 1 of memory/recent.md, the Cutoff
+    line of memory/buffer.md. Local-only stamps (no UTC pair) are skipped —
+    there is nothing to cross-check.
+    """
+    issues = []
+    warnings = []
+
+    try:
+        from zoneinfo import ZoneInfo
+        denver = ZoneInfo("America/Denver")
+    except Exception:
+        return issues, ["  NOTE: zoneinfo unavailable — stamp consistency check skipped"]
+
+    pair_re = re.compile(
+        r'(\w{3})\w*\s+(\d{1,2}),\s*~?\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*(?:MDT|MST)'
+        r'\s*\(\s*~?\s*(\d{1,2}):(\d{2})\s*(AM|PM)?\s*UTC\s*\)',
+        re.IGNORECASE,
+    )
+
+    surfaces = [
+        ("NOW.md", os.path.join(ws, "NOW.md"), 1),
+        ("memory/recent.md", os.path.join(ws, "memory", "recent.md"), 1),
+        ("memory/buffer.md", os.path.join(ws, "memory", "buffer.md"), None),
+    ]
+    now = datetime.now(timezone.utc)
+    year = now.year
+
+    for rel, path, lineno in surfaces:
+        if not os.path.exists(path):
+            warnings.append(f"  NOTE: {rel} not found — stamp check skipped for this surface")
+            continue
+        with open(path, 'r') as fh:
+            lines = fh.readlines()
+        text = None
+        if lineno is not None:
+            text = lines[lineno - 1] if len(lines) >= lineno else None
+        else:
+            for ln in lines:
+                if ln.startswith("Cutoff:"):
+                    text = ln
+                    break
+        if text is None:
+            continue
+        m = pair_re.search(text)
+        if not m:
+            continue  # local-only stamp — nothing to cross-check
+        mon, day, lh, lmin, lampm, uh, umin, uampm = m.groups()
+        month = MONTHS.get(mon[:3].lower())
+        if not month:
+            continue
+        lh, lmin, uh, umin, day = int(lh), int(lmin), int(uh), int(umin), int(day)
+        if lampm.upper() == 'PM' and lh != 12:
+            lh += 12
+        elif lampm.upper() == 'AM' and lh == 12:
+            lh = 0
+        if uampm:
+            uh24 = uh
+            if uampm.upper() == 'PM' and uh != 12:
+                uh24 += 12
+            elif uampm.upper() == 'AM' and uh == 12:
+                uh24 = 0
+        else:
+            uh24 = uh
+        try:
+            stated_local = datetime(year, month, day, lh, lmin, tzinfo=denver)
+        except ValueError:
+            continue
+        # Compare by converting the stated local time to UTC — robust across
+        # UTC-midnight crossings (e.g. "6:50 PM MDT (00:50 UTC)" is valid:
+        # the UTC side belongs to the next UTC day, which carries no date).
+        stated_utc = stated_local.astimezone(timezone.utc)
+        if (stated_utc.hour, stated_utc.minute) != (uh24, umin):
+            issues.append(
+                f"  STAMP MISMATCH ({rel}): \"{text.strip()}\" — stated local time is "
+                f"{stated_utc:%H:%M} UTC, but the stamp says {uh24:02d}:{umin:02d} UTC. "
+                f"Fix from bin/now or git commit times; never hand-convert."
+            )
+            continue
+        if stated_utc - now > timedelta(minutes=5):
+            issues.append(
+                f"  STAMP IN FUTURE ({rel}): \"{text.strip()}\" — stamps record past moments; "
+                f"this one is ahead of now"
+            )
+
+    return issues, warnings
+
 def main(argv):
     ws = find_workspace()
 
@@ -260,6 +353,7 @@ def main(argv):
         ("3. NOW.md freshness", check_now_freshness),
         ("4. Buffer age", check_buffer_age),
         ("5. Critical files tracked in git", check_tracked_critical_files),
+        ("6. Stamp consistency (dual-zone)", check_stamp_consistency),
     ]
 
     total_issues = 0

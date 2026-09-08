@@ -1,6 +1,35 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-07, dev routine 2 PM MDT)
+## Current state (updated 2026-09-08, dev routine 2 PM MDT)
+
+Dev routine pulled #26 (oldest open roadmap; #34/#38 still carry
+Shane's `blocked` label) — resolved as a close-out, no code change:
+the CI gate it asked for shipped via another seat and is live-verified
+working.
+
+- workslo/fleet PR #26 (codexslo, merged Sep 7 `acbebe0`) landed
+  `.github/workflows/check.yml` — `npm run check` (typecheck && test
+  && build && deploy:dry) on node 24, every push. My test-only PR #30
+  was closed superseded by Shane Sep 8 (Claude's review: strict
+  superset). workslo/fleet #6 closed. fleet-home #26 closed this run
+  with the full record on the issue (issuecomment-5591168692).
+- Gate proof, same day: workslo/fleet PR #34 (Access transport, mine,
+  merged by Shane 11:17 AM MDT) and #35 (standalone review, Codex,
+  merged 7 min earlier) — each branch green on its own push run,
+  merged main RED at 17:17 UTC (#34 made `authHeaders` an async
+  method; #35's `getRequest()` kept the property access — a
+  cross-branch break no contributing branch could see). Codex's fix
+  PR #36 is open, branch green 17:27 UTC; main stays red until it
+  merges.
+- Queue after this run: EMPTY of actionable slices — #34/#38 blocked
+  (Shane's label, his unblock). Next run needs feeding: scoped
+  month-2 outward slices, or his unblock.
+
+Adjacent: PR #34's owner-merge wait is over (Shane merged it, merge
+commit `04b59746`). Repo PRs #45 (gated by Shane) and #48 (his own
+draft) unchanged.
+
+## Prior state (updated 2026-09-07, dev routine 2 PM MDT)
 
 Dev routine pulled #47 — **check 6 (stamp consistency, dual-zone) ported
 to `checks/memory-lint`** (this PR). Function + registration ported

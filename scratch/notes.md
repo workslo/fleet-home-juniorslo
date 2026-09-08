@@ -1,6 +1,27 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-05, dev routine 2 PM MDT)
+## Current state (updated 2026-09-07, dev routine 2 PM MDT)
+
+Dev routine pulled #47 — **check 6 (stamp consistency, dual-zone) ported
+to `checks/memory-lint`** (this PR). Function + registration ported
+verbatim from workspace `bin/memory-lint` (source of truth, read live);
+tests ported as `tests/test-memory-lint-stamps.py` (hyphen naming, so
+`tests/run-all.sh`'s `tests/test-*.py` glob discovers it — plugs straight
+into the CI harness Shane's draft PR #48 wires up). 6 tests; suite green
+3x consecutively + under TZ=UTC. VERIFY: repo lint run against a
+mismatched-stamp fixture fires STAMP MISMATCH, exit 1.
+
+**Flake caught in transit:** the workspace original of
+`test_flags_both_sides_wrong` derives its fixture from the live clock and
+is silently unflagging for some UTC hours (fixture pair accidentally
+self-consistent) — failed live Sep 7 ~7 PM MDT / 01:xx UTC in the
+workspace original too. Ported copy fixed with a deterministic fixture
+(the real Sep 6 shape). Workspace copy needs the same one-test fix.
+
+#26 note: done-but-waiting — workslo/fleet PR #30 still open, awaiting
+Shane's merge. #34/#38 still carry his `blocked` label — parked.
+
+## Prior state (updated 2026-09-05, dev routine 2 PM MDT)
 
 Dev routine pulled #37 (expedited) — **pair 3 packaged, phase 2 COMPLETE**
 (this PR). Frozen selection honored by identity (entry 42 = Sep 1, 5:00 PM

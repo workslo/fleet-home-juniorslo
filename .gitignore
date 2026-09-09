@@ -1,0 +1,4 @@
+# Python bytecode. The tests import checks/memory-lint via importlib, which
+# writes a cache next to it; that cache is never source.
+__pycache__/
+*.pyc

@@ -28,4 +28,15 @@ if ! grep -q "entrypoint: \"ui/home.html\"" "${ROOT_DIR}/home/entry.yaml"; then
   exit 1
 fi
 
+# Compiled Python must not be tracked. The tests load checks/memory-lint through
+# importlib, which writes a __pycache__ beside it; one such file shipped in PR #24.
+# Presence on disk is fine (it is a side effect of running the tests) -- being
+# tracked by git is the defect.
+if tracked_pyc="$(git -C "${ROOT_DIR}" ls-files -- '*.pyc' '**/__pycache__/*' 2>/dev/null)" \
+   && [[ -n "${tracked_pyc}" ]]; then
+  echo "Compiled Python is tracked in git (add it to .gitignore and git rm --cached):" >&2
+  echo "${tracked_pyc}" >&2
+  exit 1
+fi
+
 echo "Fleet home template checks passed."

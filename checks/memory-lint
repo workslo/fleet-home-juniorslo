@@ -14,6 +14,15 @@ Checks:
   3. NOW.md freshness — file mtime > 24h (warn) or > 48h (flag).
   4. Buffer age — entries in memory/buffer.md with timestamps older than
      the stated consolidation cutoff (should have been processed already).
+  5. Critical files tracked in git — journal.md/buffer.md/NOW.md/SOUL.md
+     must have version history (the Aug 31 safety-net race class).
+  6. Stamp consistency — paired local/UTC stamps in NOW.md, recent.md, and
+     buffer.md must agree in the America/Denver zone (the hand-conversion
+     error class; third strike → structural check).
+  7. Link graveyard — links in hot concept pages pointing at targets that
+     no longer exist (moved to archive, renamed, deleted), plus frontmatter
+     links to reference-tier targets (unreachable per the settled resolver
+     rule, Sep 9 — route those via body prose). Detection only.
 
 Usage:
   python3 bin/memory-lint [--workspace PATH]
@@ -56,6 +65,47 @@ def parse_frontmatter_slug(content):
 def extract_wikilinks(content):
     """Find all [[slug]] wikilinks in content. Returns list of slugs."""
     return re.findall(r'\[\[([^\]]+)\]\]', content)
+
+def iter_frontmatter_link_entries(content):
+    """Yield (lineno, target) for each entry of the frontmatter `links:` list.
+
+    Entry shapes in the wild (the-fleet.md, arcs pages): `- "target -
+    description"` or `- "target — description"`; the target is the text
+    before the first ' - ' / ' — ' separator. Entries without a separator
+    are bare targets. Blank lines inside the list are tolerated.
+    """
+    lines = content.split('\n')
+    if not lines or lines[0].strip() != '---':
+        return []
+    end = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == '---':
+            end = i
+            break
+    if end is None:
+        return []
+    out = []
+    in_links = False
+    for i in range(1, end):
+        ln = lines[i]
+        if re.match(r'^links:\s*$', ln):
+            in_links = True
+            continue
+        if not in_links:
+            continue
+        m = re.match(r'^\s*-\s+(.*)$', ln)
+        if m:
+            entry = m.group(1).strip()
+            if len(entry) >= 2 and entry[0] in ('"', "'") and entry[-1] == entry[0]:
+                entry = entry[1:-1]
+            target = re.split(r'\s+[-—]\s+', entry, maxsplit=1)[0].strip()
+            if target:
+                out.append((i + 1, target))
+        elif ln.strip() == '':
+            continue  # blank line inside the list (the-fleet.md shape)
+        else:
+            in_links = False  # next frontmatter key — list over
+    return out
 
 def parse_informal_date(text):
     """Parse informal dates like 'Sep 2, 2:10 PM' or 'Sep 2, 1:37 PM'.
@@ -324,6 +374,137 @@ def check_stamp_consistency(ws):
 
     return issues, warnings
 
+def check_link_graveyard(ws):
+    """Check 7: link graveyard — links in hot concept pages whose targets no
+    longer exist (moved to archive, renamed, or deleted), plus frontmatter
+    links to reference-tier targets (unreachable per the settled resolver
+    rule, Sep 9). Issue #34; detection only, no auto-fix.
+
+    Sources: memory/concepts/** only. Reference-tier pages as link SOURCES
+    are known residual debt (gotchas resolver entry) — not this slice.
+
+    Resolution model (settled Sep 9, after three falsifications):
+      - frontmatter `links:` entries and body [[wikilinks]] resolve ONLY
+        against memory/concepts/ (bare slug, arcs/<slug>, or any concepts
+        subpath). A target whose page exists elsewhere is flagged
+        UNREACHABLE FORM — route via body prose; if the page now lives in
+        memory/archive/ and the link doesn't already point there, it's
+        flagged ROTTED instead (the link predates an archiving move).
+      - body prose paths (reference/..., archive/..., concepts/... — the
+        settled routing form for anything outside concepts/) resolve
+        against the filesystem: memory/<path>.md, the directory itself, or
+        its INDEX.md. Resolving targets are VALID — explicit archive paths
+        are redirects, not dead links (issue #34 done-when). A target that
+        doesn't resolve is flagged DEAD PATH.
+
+    Not scanned: `main:` frontmatter fields (the resolver model covers
+    `links:` only) and bare backticked slugs (→ `slug` arrow notation,
+    outside issue #34's scope). Overlap: a ROTTED wikilink also fires
+    check 2's ORPHANED — both true, different detail (check 2 says the
+    slug isn't in concepts/; this check says where it went).
+    """
+    issues = []
+    warnings = []
+
+    concept_files = sorted(glob.glob(os.path.join(ws, 'memory/concepts/**/*.md'), recursive=True))
+    if not concept_files:
+        warnings.append("  NOTE: no concept pages found — link graveyard check skipped")
+        return issues, warnings
+
+    # concepts resolution set: relpaths (no .md) + frontmatter slugs
+    concepts_targets = set()
+    for f in concept_files:
+        rel = os.path.relpath(f, ws)
+        base = rel[len('memory/concepts/'):]
+        if base.endswith('.md'):
+            base = base[:-len('.md')]
+        concepts_targets.add(base)
+        with open(f, 'r') as fh:
+            slug = parse_frontmatter_slug(fh.read())
+        if slug:
+            concepts_targets.add(slug)
+
+    # tier indexes: filename stem -> relpath (memory/-prefixed), for bare-slug
+    # links aimed at pages that live outside concepts/ (e.g. "littlebird" ->
+    # memory/reference/people/littlebird.md, or an archived slug)
+    ref_hits = {}
+    for f in glob.glob(os.path.join(ws, 'memory/reference/**/*.md'), recursive=True):
+        stem = os.path.splitext(os.path.basename(f))[0]
+        ref_hits.setdefault(stem, os.path.relpath(f, ws))
+    archive_hits = {}
+    for f in glob.glob(os.path.join(ws, 'memory/archive/**/*.md'), recursive=True):
+        stem = os.path.splitext(os.path.basename(f))[0]
+        archive_hits.setdefault(stem, os.path.relpath(f, ws))
+
+    def locate_page(target):
+        """Where does the target page actually live? Returns a memory/-prefixed
+        relpath, or None if no page matches in any tier. Exact forms first
+        (full path, INDEX form), then stem search across reference/ and
+        archive/ (reference wins — a live page beats an archived one)."""
+        for cand in (target + '.md', 'reference/' + target + '.md',
+                     os.path.join(target, 'INDEX.md'),
+                     os.path.join('reference', target, 'INDEX.md')):
+            if os.path.exists(os.path.join(ws, 'memory', cand)):
+                return 'memory/' + cand
+        for idx in (ref_hits, archive_hits):
+            hit = idx.get(target) or idx.get(target.split('/')[-1])
+            if hit:
+                return hit
+        return None
+
+    def classify_slug_target(target, rel, lineno, form):
+        """form: 'frontmatter link' or 'wikilink' — resolves against concepts/ only."""
+        if target in concepts_targets:
+            return
+        loc = locate_page(target)
+        if loc is None:
+            issues.append(
+                f"  DEAD LINK ({rel}, line {lineno}): \"{target}\" — no page with this slug in concepts/, reference/, or archive/"
+            )
+            return
+        if loc.startswith('memory/archive/') and not target.startswith('archive/'):
+            issues.append(
+                f"  ROTTED LINK ({rel}, line {lineno}): \"{target}\" — target moved to {loc}; "
+                f"{form} targets resolve only against memory/concepts/, so the link is dead"
+            )
+            return
+        issues.append(
+            f"  UNREACHABLE FORM ({rel}, line {lineno}): \"{target}\" — {form} targets resolve only "
+            f"against memory/concepts/ (settled Sep 9); the page exists at {loc} — route via body prose"
+        )
+
+    path_re = re.compile(r'(?:memory/)?\b((?:reference|archive|concepts)/[A-Za-z0-9][A-Za-z0-9/_.-]*)')
+
+    for f in concept_files:
+        with open(f, 'r') as fh:
+            content = fh.read()
+        rel = os.path.relpath(f, ws)
+        lines = content.split('\n')
+
+        for lineno, target in iter_frontmatter_link_entries(content):
+            classify_slug_target(target, rel, lineno, 'frontmatter link')
+
+        for lineno, line in enumerate(lines, 1):
+            for m in re.finditer(r'\[\[([^\]]+)\]\]', line):
+                classify_slug_target(m.group(1).split('|')[0].strip(), rel, lineno, 'wikilink')
+            for m in path_re.finditer(line):
+                path = m.group(1).rstrip('.,;:)"\'')
+                if not path or path.endswith('-') or path.endswith('/'):
+                    continue  # truncated glob / bare dir mention — ambiguous, skip
+                stem = path[:-3] if path.endswith('.md') else path
+                if any(os.path.exists(p) for p in (
+                    os.path.join(ws, 'memory', stem + '.md'),
+                    os.path.join(ws, 'memory', stem),
+                    os.path.join(ws, 'memory', stem, 'INDEX.md'),
+                )):
+                    continue
+                issues.append(
+                    f"  DEAD PATH ({rel}, line {lineno}): \"{m.group(1)}\" — no file at memory/{stem}.md "
+                    f"(moved, renamed, or deleted?)"
+                )
+
+    return issues, warnings
+
 def main(argv):
     ws = find_workspace()
 
@@ -354,6 +535,7 @@ def main(argv):
         ("4. Buffer age", check_buffer_age),
         ("5. Critical files tracked in git", check_tracked_critical_files),
         ("6. Stamp consistency (dual-zone)", check_stamp_consistency),
+        ("7. Link graveyard (concept-page links)", check_link_graveyard),
     ]
 
     total_issues = 0

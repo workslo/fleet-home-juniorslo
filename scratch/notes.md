@@ -1,6 +1,45 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-08, dev routine 2 PM MDT)
+## Current state (updated 2026-09-09, dev routine 2 PM MDT)
+
+Dev routine pulled #34 (oldest open roadmap; Shane approved it bounded
+Sep 9 morning) — **link-graveyard check shipped** (PR #53, squash
+30eeae72, CI green, #34 closed): check 7 `check_link_graveyard` +
+`tests/test-memory-lint-links.py` (25 checks). Verdicts follow the
+settled Sep 9 resolver model — UNREACHABLE FORM (page exists, frontmatter
+can't reach it), ROTTED (page moved to archive/), DEAD (nowhere in the
+three live tiers); body-prose paths resolve against the filesystem,
+explicit archive/ paths are valid redirects. Detection only.
+
+Live-corpus run reviewed pre-merge: 51 check-7 findings — 6 ROTTED
+(jrslo-catch-ledger x3, correction-methodology x2, filing-cabinet-reflex),
+44 UNREACHABLE FORM (24 on the-fleet.md, untouched by the Sep 9 demotion
+pass), 1 DEAD (verification-before-presentation L12 -> cold/ storage).
+No auto-fix; the findings are the next consolidation pass's map.
+
+**Drift found mid-slice, filed as #52:** the live bin/memory-lint
+carries the Sep 8 phase-2 stamp work (--stamps, local-only rules) that
+never landed in the repo — CI (live since #48) tests a copy one version
+behind production. Check 7 is independent of phase 2, so #34 landed
+clean on the repo copy; the port is #52, next in the queue. Post-merge,
+check 7 was synced additively into the live tool (phase 2 untouched,
+verified: --stamps green, findings identical, repo<->live delta =
+exactly the phase-2 block).
+
+Post-merge verification caught and fixed two record errors in the same
+pass: the PR body's finding counts (56-all-check-7 / 5-50-1 split ->
+corrected to 51 = 6/44/1, 24 on the-fleet.md) and the #34 close-out
+(which had overwritten the issue body instead of commenting — restored
+as-filed, close-out re-posted as a comment).
+
+Queue after this run: #52 (lint drift port), then #38 (direction-B
+remainder — refinement 3 shipped separately as PR #51, awaiting Shane's
+review).
+
+Adjacent: PR #45 gated (Shane), PR #51 his review, #48 merged (CI live).
+
+## Prior state (updated 2026-09-08, dev routine 2 PM MDT)
+
 
 Dev routine pulled #26 (oldest open roadmap; #34/#38 still carry
 Shane's `blocked` label) — resolved as a close-out, no code change:

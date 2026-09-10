@@ -17,15 +17,24 @@ Checks:
   5. Critical files tracked in git — journal.md/buffer.md/NOW.md/SOUL.md
      must have version history (the Aug 31 safety-net race class).
   6. Stamp consistency — paired local/UTC stamps in NOW.md, recent.md, and
-     buffer.md must agree in the America/Denver zone (the hand-conversion
-     error class; third strike → structural check).
+     buffer.md must agree in the America/Denver zone (the Sep 1/5/6
+     hand-conversion error class; third strike → structural check). Since
+     Sep 8 also scans LOCAL-ONLY stamps (no UTC pair — the shape every
+     writer actually uses) on NOW.md/recent.md line 1, buffer.md entries,
+     and archive day files modified within 48h: a stamp in the future, or
+     later than its file's last write, fails loud (the UTC-read-as-local
+     class; Sep 8: 100+ stamps sat ~6h wrong with the pair check silent).
   7. Link graveyard — links in hot concept pages pointing at targets that
      no longer exist (moved to archive, renamed, deleted), plus frontmatter
      links to reference-tier targets (unreachable per the settled resolver
      rule, Sep 9 — route those via body prose). Detection only.
 
 Usage:
-  python3 bin/memory-lint [--workspace PATH]
+  python3 bin/memory-lint [--workspace PATH] [--stamps]
+
+  --stamps runs only check 6 — cheap enough for heartbeat cadence (the
+  stamp-later-than-mtime rule only catches the UTC-as-local class while
+  fresh; daily-only runs miss stamps older than ~6h).
 
 Exit 0 = clean, exit 1 = issues found, exit 2 = usage/error.
 """
@@ -289,8 +298,14 @@ def check_stamp_consistency(ws):
     21:39 UTC is 3:39 PM MDT. The "use bin/now, never hand-convert"
     convention decayed three times; this check is the structural version.
     Surfaces: line 1 of NOW.md, line 1 of memory/recent.md, the Cutoff
-    line of memory/buffer.md. Local-only stamps (no UTC pair) are skipped —
-    there is nothing to cross-check.
+    line of memory/buffer.md. Phase 1 skips local-only stamps (no UTC
+    pair) — nothing to cross-check. Phase 2 (Sep 8) scans local-only
+    stamps on NOW.md/recent.md line 1, every buffer.md line, and archive
+    day files modified within 48h: FUTURE (> now+5min) or LATER-THAN-
+    MTIME (> file mtime +10min) fail loud. The UTC-read-as-local class
+    always claims +6h, so the mtime rule catches it from the bad write
+    until the file's mtime passes the claim — run frequently (heartbeat
+    --stamps) to catch it fresh; older ones need git anchoring.
     """
     issues = []
     warnings = []
@@ -371,6 +386,97 @@ def check_stamp_consistency(ws):
                 f"  STAMP IN FUTURE ({rel}): \"{text.strip()}\" — stamps record past moments; "
                 f"this one is ahead of now"
             )
+
+    # --- Phase 2: local-only stamps (added Sep 8, 2026) ---
+    # Phase 1 only judges stamps carrying a "(HH:MM UTC)" pair. Every real
+    # writer (heartbeats, consolidation/retrospective passes, conversation
+    # close-outs) stamps local-only: "[Sep 8, 10:41 PM]". On Sep 8 an entire
+    # day of archive/buffer/recent stamps sat ~6h wrong (raw UTC clock read
+    # as local) and phase 1 saw none of them — local-only was skipped by
+    # design. Two mechanical rules, no zone inference:
+    #   (a) FUTURE: a stamp later than now+5min is wrong at any check time.
+    #   (b) MTIME: a stamp later than its file's last write +10min claims an
+    #       impossible write moment. The UTC-read-as-local class always
+    #       claims +6h, so this catches it from the bad write until the
+    #       file's mtime passes the claim — run frequently to catch fresh.
+    # Honest limit: a wrong stamp whose claimed time has passed AND been
+    # overtaken by later writes is no longer mechanically distinguishable;
+    # fix those by git anchoring (first commit containing the line).
+    local_re = re.compile(
+        r'(\w{3})\w*\s+(\d{1,2}),\s*~?\s*(\d{1,2}):(\d{2})\s*(AM|PM)\b',
+        re.IGNORECASE,
+    )
+
+    def _mtime_utc(path):
+        try:
+            return datetime.fromtimestamp(os.path.getmtime(path), tz=timezone.utc)
+        except OSError:
+            return None
+
+    local_surfaces = [
+        ("NOW.md", os.path.join(ws, "NOW.md"), True),
+        ("memory/recent.md", os.path.join(ws, "memory", "recent.md"), True),
+        ("memory/buffer.md", os.path.join(ws, "memory", "buffer.md"), False),
+    ]
+    for apath in sorted(glob.glob(os.path.join(ws, "memory", "archive", "*.md"))):
+        amtime = _mtime_utc(apath)
+        if amtime and now - amtime <= timedelta(hours=48):
+            local_surfaces.append(
+                (f"memory/archive/{os.path.basename(apath)}", apath, False)
+            )
+
+    for rel, path, first_line_only in local_surfaces:
+        if not os.path.exists(path):
+            continue
+        mt = _mtime_utc(path)
+        with open(path, 'r') as fh:
+            lines = fh.readlines()
+        if first_line_only:
+            lines = lines[:1]
+        seen = set()
+        for ln, text in enumerate(lines, 1):
+            pair_spans = [(m.start(), m.end()) for m in pair_re.finditer(text)]
+            for m in local_re.finditer(text):
+                if any(s <= m.start() < e for s, e in pair_spans):
+                    continue  # local half of a pair — phase 1 judged it
+                if (ln, m.group(0)) in seen:
+                    continue  # same stamp quoted twice on one line
+                seen.add((ln, m.group(0)))
+                month = MONTHS.get(m.group(1)[:3].lower())
+                if not month:
+                    continue
+                day, lh, lmin = int(m.group(2)), int(m.group(3)), int(m.group(4))
+                ampm = m.group(5).upper()
+                if ampm == 'PM' and lh != 12:
+                    lh += 12
+                elif ampm == 'AM' and lh == 12:
+                    lh = 0
+                stamp_local = None
+                for yr in (year, year - 1):  # Dec/Jan boundary tolerance
+                    try:
+                        cand = datetime(yr, month, day, lh, lmin, tzinfo=denver)
+                    except ValueError:
+                        continue
+                    if cand.astimezone(timezone.utc) - now <= timedelta(days=45):
+                        stamp_local = cand
+                        break
+                if stamp_local is None:
+                    continue
+                stamp_utc = stamp_local.astimezone(timezone.utc)
+                frag = m.group(0)
+                if stamp_utc - now > timedelta(minutes=5):
+                    issues.append(
+                        f"  LOCAL-ONLY STAMP IN FUTURE ({rel}, line {ln}): \"{frag}\" — "
+                        f"stamps record past moments; raw-clock UTC read as local. "
+                        f"Fix from bin/now or git anchors; never hand-convert."
+                    )
+                elif mt is not None and stamp_utc - mt > timedelta(minutes=10):
+                    issues.append(
+                        f"  STAMP LATER THAN LAST WRITE ({rel}, line {ln}): \"{frag}\" — "
+                        f"claims a write moment after the file's last write "
+                        f"(UTC-read-as-local class). Anchor from git "
+                        f"(first commit containing the line) and correct."
+                    )
 
     return issues, warnings
 
@@ -507,6 +613,7 @@ def check_link_graveyard(ws):
 
 def main(argv):
     ws = find_workspace()
+    only_stamps = False
 
     i = 0
     while i < len(argv):
@@ -514,6 +621,9 @@ def main(argv):
         if arg in ("-h", "--help"):
             print(__doc__)
             sys.exit(0)
+        elif arg == "--stamps":
+            only_stamps = True
+            i += 1
         elif arg == "--workspace":
             if i + 1 >= len(argv):
                 print("error: --workspace requires a value", file=sys.stderr)
@@ -537,6 +647,8 @@ def main(argv):
         ("6. Stamp consistency (dual-zone)", check_stamp_consistency),
         ("7. Link graveyard (concept-page links)", check_link_graveyard),
     ]
+    if only_stamps:
+        checks = [c for c in checks if c[0].startswith("6.")]
 
     total_issues = 0
     total_warnings = 0

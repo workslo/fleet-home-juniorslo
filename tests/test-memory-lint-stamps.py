@@ -104,7 +104,7 @@ class CheckStampConsistency(unittest.TestCase):
         Denver = 03:40 UTC, stamp says 15:40 UTC -> flagged. (A clock-derived
         version of this fixture is flaky: for some UTC hours the swapped
         pair is accidentally self-consistent and flags nothing — caught
-        live Sep 7 ~7 PM MDT / 01:xx UTC, failed in the workspace original too.)
+        live Sep 7 ~7 PM MDT / 01:xx UTC; fixed in the fleet-home port first.)
         """
         local = "Sep 6, 3:40 PM MDT"
         utc12 = "21:40"
@@ -128,6 +128,88 @@ class CheckStampConsistency(unittest.TestCase):
         issues, warnings = memory_lint.check_stamp_consistency(ws)
         self.assertEqual(issues, [])
         self.assertEqual(warnings, [])
+
+    # --- Phase 2: local-only stamps (Sep 8, 2026) -------------------------
+    # On Sep 8 an entire day of archive/buffer/recent stamps sat ~6h wrong
+    # (raw UTC clock read as local) and phase 1 saw none of it — local-only
+    # stamps were skipped by design. These tests pin the two new rules.
+
+    def _write_buffer_entry(self, ws, stamp_fragment):
+        with open(os.path.join(ws, "memory", "buffer.md"), "a") as f:
+            f.write(f"- [{stamp_fragment}] Entry text\n")
+
+    def _write_archive_entry(self, ws, stamp_fragment):
+        arch = os.path.join(ws, "memory", "archive")
+        os.makedirs(arch, exist_ok=True)
+        with open(os.path.join(arch, "2026-09-08.md"), "a") as f:
+            f.write(f"- [{stamp_fragment}] Entry text\n")
+
+    def test_flags_local_only_future_recent_header(self):
+        """The Sep 8 live shape: recent.md line 1 'Sep 8, ~9:41 PM cutoff'
+        written at 3:41 PM MDT — a local-only stamp hours in the future."""
+        local, _, _ = make_stamps()
+        local_future, _, _ = make_stamps(offset_hours=+2)
+        ws = make_ws(f"# {local}.", f"# {local_future} cutoff.", local)
+        issues, _ = memory_lint.check_stamp_consistency(ws)
+        self.assertEqual(len(issues), 1)
+        self.assertIn("LOCAL-ONLY STAMP IN FUTURE", issues[0])
+        self.assertIn("recent.md", issues[0])
+
+    def test_flags_local_only_future_buffer_entry(self):
+        local, _, _ = make_stamps()
+        local_future, _, _ = make_stamps(offset_hours=+2)
+        ws = make_ws(f"# {local}.", f"# {local}.", local)
+        self._write_buffer_entry(ws, local_future)
+        issues, _ = memory_lint.check_stamp_consistency(ws)
+        self.assertEqual(len(issues), 1)
+        self.assertIn("LOCAL-ONLY STAMP IN FUTURE", issues[0])
+        self.assertIn("buffer.md", issues[0])
+
+    def test_flags_local_only_future_archive_entry(self):
+        local, _, _ = make_stamps()
+        local_future, _, _ = make_stamps(offset_hours=+2)
+        ws = make_ws(f"# {local}.", f"# {local}.", local)
+        self._write_archive_entry(ws, local_future)
+        issues, _ = memory_lint.check_stamp_consistency(ws)
+        self.assertEqual(len(issues), 1)
+        self.assertIn("LOCAL-ONLY STAMP IN FUTURE", issues[0])
+        self.assertIn("archive", issues[0])
+
+    def test_flags_stamp_later_than_last_write(self):
+        """The mtime rule: a PAST stamp that still claims a write moment
+        after the file's last write (UTC-as-local always claims +6h)."""
+        local, _, _ = make_stamps()
+        cutoff_old, _, _ = make_stamps(offset_hours=-4)
+        local_30m_ago, _, _ = make_stamps(offset_hours=-0.5)
+        ws = make_ws(f"# {local}.", f"# {local}.", cutoff_old)
+        self._write_buffer_entry(ws, local_30m_ago)
+        bpath = os.path.join(ws, "memory", "buffer.md")
+        old = datetime.now(timezone.utc) - timedelta(hours=3)
+        os.utime(bpath, (old.timestamp(), old.timestamp()))
+        issues, _ = memory_lint.check_stamp_consistency(ws)
+        self.assertEqual(len(issues), 1)
+        self.assertIn("STAMP LATER THAN LAST WRITE", issues[0])
+        self.assertIn("buffer.md", issues[0])
+
+    def test_clean_local_only_past_entries_all_surfaces(self):
+        """Correct local-only stamps (past, mtime-consistent) stay silent."""
+        local, _, _ = make_stamps(offset_hours=-2)
+        ws = make_ws(f"# {local}.", f"# {local} cutoff.", local)
+        self._write_buffer_entry(ws, local)
+        self._write_archive_entry(ws, local)
+        issues, warnings = memory_lint.check_stamp_consistency(ws)
+        self.assertEqual(issues, [])
+        self.assertEqual(warnings, [])
+
+    def test_paired_stamp_not_double_flagged(self):
+        """A paired stamp is judged once (phase 1); phase 2 must not re-flag
+        the local half of the pair."""
+        local, utc24, _ = make_stamps(offset_hours=+2)
+        ws = make_ws(f"# {local}.", f"# {local} ({utc24} UTC).", local)
+        issues, _ = memory_lint.check_stamp_consistency(ws)
+        recent_issues = [i for i in issues if "recent.md" in i]
+        self.assertEqual(len(recent_issues), 1)
+        self.assertIn("STAMP IN FUTURE", recent_issues[0])
 
 
 if __name__ == "__main__":

@@ -1,6 +1,29 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-09, dev routine 2 PM MDT)
+## Current state (updated 2026-09-10, dev routine 2 PM MDT)
+
+Dev routine pulled #52 (oldest open roadmap) — **lint drift port
+shipped** (PR #56): the Sep 8 phase-2 stamp work moved from the live
+workspace `bin/memory-lint` into `checks/memory-lint` (byte-identical,
+verified by empty diff — the issue's done-when criterion), and the
+phase-2 test block into `tests/test-memory-lint-stamps.py` (12 tests,
+up from 6; the one intentional live-vs-repo delta is the LINT path,
+`../checks/` vs `../bin/`). One extra drift the issue didn't name: the
+stamps test's Sep 7 history comment had also drifted — the newer live
+wording came across with the port, so that file now carries zero drift.
+
+CI no longer tests a copy behind production: versioned and live lint
+are the same code as of this merge. Future lint changes go repo-first,
+then sync additively into the live `bin/` copy (bin/ stays .gitignored
+workspace-side; that gap is tracked workspace-side).
+
+Queue after this run: #38 (direction-B remainder — refinement 3
+shipped as PR #51, merged + applied live Sep 9 evening).
+
+Adjacent: PR #55 open (stamp-bug report; vellum-ai fork grant =
+Shane's lever), PR #45 gated (Shane).
+
+## Prior state (updated 2026-09-09, dev routine 2 PM MDT)
 
 Dev routine pulled #34 (oldest open roadmap; Shane approved it bounded
 Sep 9 morning) — **link-graveyard check shipped** (PR #53, squash

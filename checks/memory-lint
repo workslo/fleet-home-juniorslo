@@ -611,6 +611,38 @@ def check_link_graveyard(ws):
 
     return issues, warnings
 
+def check_rm_guard(ws):
+    """Check 8: the rm-guard shim must be alive and identical to the canonical copy.
+
+    Shane's standing rule (Sep 11, 2026): no `rm -rf` anywhere — his Mac or
+    this workspace. The shim at /usr/local/bin/rm refuses recursive+force
+    invocations; container rebuilds wipe /usr/local, so this check fails
+    loud when the guard is missing or drifted, and the heartbeat re-arms
+    it same-run from <ws>/bin/rm-guard/rm.
+    """
+    issues = []
+    warnings = []
+    canonical = os.path.join(ws, "bin", "rm-guard", "rm")
+    installed = "/usr/local/bin/rm"
+
+    if not os.path.exists(canonical):
+        issues.append(f"  RM-GUARD: canonical copy missing at {canonical} — restore from fleet-home repo (bin/rm-guard/rm)")
+        return issues, warnings
+
+    if not os.path.exists(installed):
+        issues.append(f"  RM-GUARD: shim not installed at {installed} (container rebuilt?) — re-arm: cp {canonical} {installed} && chmod +x {installed}")
+        return issues, warnings
+
+    with open(installed) as f:
+        if "rm-guard" not in f.read():
+            issues.append(f"  RM-GUARD: {installed} is not the guard (plain rm?) — re-arm: cp {canonical} {installed} && chmod +x {installed}")
+            return issues, warnings
+
+    if subprocess.run(["cmp", "-s", canonical, installed]).returncode != 0:
+        issues.append(f"  RM-GUARD: installed shim drifted from canonical {canonical} — re-sync: cp {canonical} {installed}")
+
+    return issues, warnings
+
 def main(argv):
     ws = find_workspace()
     only_stamps = False
@@ -646,6 +678,7 @@ def main(argv):
         ("5. Critical files tracked in git", check_tracked_critical_files),
         ("6. Stamp consistency (dual-zone)", check_stamp_consistency),
         ("7. Link graveyard (concept-page links)", check_link_graveyard),
+        ("8. rm-guard alive (no -rf rule)", check_rm_guard),
     ]
     if only_stamps:
         checks = [c for c in checks if c[0].startswith("6.")]

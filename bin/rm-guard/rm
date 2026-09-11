@@ -1,0 +1,24 @@
+#!/bin/bash
+# rm-guard — Shane's standing rule (Sep 11, 2026): no `rm -rf` anywhere.
+# Recursive + force together is refused. `rm -r`, `rm -f`, plain `rm` pass through.
+# Evasion note: guards direct `rm` invocations only; full paths (/bin/rm) bypass by design.
+REAL_RM=/bin/rm
+recursive=0
+force=0
+for arg in "$@"; do
+  case "$arg" in
+    --) break ;;
+    -r|-R|--recursive) recursive=1 ;;
+    -f|--force) force=1 ;;
+    -*)
+      flags="${arg#-}"
+      if [[ "$flags" == *r* || "$flags" == *R* ]]; then recursive=1; fi
+      if [[ "$flags" == *f* ]]; then force=1; fi
+      ;;
+  esac
+done
+if [ "$recursive" -eq 1 ] && [ "$force" -eq 1 ]; then
+  echo "rm-guard: refused — recursive force delete is against the standing rule (Shane, Sep 11 2026). Use rm -r without -f, or delete in slices." >&2
+  exit 1
+fi
+exec "$REAL_RM" "$@"

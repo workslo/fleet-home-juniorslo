@@ -1,6 +1,51 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-10, dev routine 2 PM MDT)
+## Current state (updated 2026-09-13, dev routine 2 PM MDT)
+
+Dev routine pulled #63 (oldest actionable item — #58/#59/#62 were filed
+without labels and are parked on Shane's go) — **stamp-repair pass
+verified complete, #63 closed with receipt**. The ~50-entry Sep 11
+worker-stamp batch was consumed across the earlier repair runs (Sep 11
+12:28 PM; Sep 12 3:55 + 4:55 AM; Sep 13 3:30, 4:47, 8:53 AM); this run
+finished the last 2 lint flags (the Sep 13 9:56 AM heartbeat entry's
+raw-UTC leading stamp, both dual-write surfaces) and ran the first full
+independent verification: stamp-vs-anchor survey across
+buffer/archive/concepts (2 hits = the documented collection-time pair,
+archive/2026-09-11.md L3–L4, explained in-file by the Sep 11 12:28 PM
+repair) + unanchored +6h tell-check (0 suspects). Lint 0. Root cause is
+still live upstream-side — fix branch awaits Shane's fork grant
+(PR #55); the catch-layer practice (first run that sees flags repairs
+in-run) covers new instances.
+
+Queue maintenance, same run: **#61 closed** (tokenless-remote sweep
+verified live: all three workspace clones on clean HTTPS remotes, zero
+credential shapes in any .git/config — the sweep itself shipped Sep 12).
+**Roadmap labels applied to #58/#59/#62** (the Sep 11 filing burst
+omitted them; the routine pulls by label). **#58 go-ask posted** (the
+credentials lint is a self-facing checker — stop-rule: never
+self-green-lit; basis for the go: the Sep 11 clone-token leak + the
+Sep 12 bare-invocation print path) and **#62 park-note posted**
+(essentials conventions migration, co-designed Sep 11, his go pending).
+
+**Queue stocked with the pipeline spec's three migrations** (PR #64
+MERGED overnight = parent spec approved; each migration gets its own
+PLAN per the spec's Migrations section — the parent spec is the
+spec-of-record): **#70** bin/ move-out (characterization tests first —
+brownfield rule; next run pulls this → writes `plans/bin-move-out.md`
+→ PR for review; plan ends before any build), **#71** scratch cleanup
+(~20 residents to homes; wikilink sweep, ask-first on referenced
+files), **#72** tasks/ retirement (two Aug 4 files → cold/, delete
+after verification).
+
+Queue after this run: #70/#71/#72 (actionable, plan-first), #58
+(awaiting go), #59 (depends on #58), #62 (awaiting go), #15 (garden,
+gated Sep 8).
+
+Adjacent: PR #64 + #69 merged by Shane Sep 12 ~11:14 PM MDT. Retros
+archive still awaits his app-side hand. PR #55 (upstream stamp fix)
+awaits the fork grant.
+
+## Prior state (updated 2026-09-10, dev routine 2 PM MDT)
 
 Dev routine pulled #52 (oldest open roadmap) — **lint drift port
 shipped** (PR #56): the Sep 8 phase-2 stamp work moved from the live
@@ -162,41 +207,9 @@ Verified on fresh clone: typecheck passes, 40/40 tests pass. workslo/fleet
 This unblocks #26 partially: once workflows permission is granted, the CI
 workflow can include `npm run typecheck` as a step alongside `npm test`.
 
-### Open issues
-
-- **#15** — Front-door deployment. Blocked on Shane Cloudflare API key.
-- **#19** — Self-review experiment pilot. In progress (Codex reviewing PR #23,
-  Quinn review task pending handoff).
-- **#22** — Claude correspondence (open letter, not a work item).
-- **#26** — CI workflow. BLOCKED on App workflows permission (Shane gate).
-  Workflow file staged at workspace scratch/ci-workflow-ready.yml.
-
-### Queue status
-
-#26 shipped Sep 6 as workslo/fleet PR #30 (CI test gate) — issue stays
-open until that PR merges.
-
-#35 (memory-lint test coverage) shipped Sep 6 dev-routine run: checks 2-5
-now all tested (tests/test-memory-lint-checks.py, 18 assertions) plus a
-one-command runner (tests/run-all.sh, 28/28 green). Check 5 was also
-synced into the repo from the live workspace tool — bin/ is gitignored
-in the workspace, so the check had existed only on disk since Sep 5.
-
-#34 and #38 carry Shane's `blocked` label (added ~10:56 PM MDT Sep 5,
-same evening as the journal pause). Do not pull them without his unblock.
-Next actionable roadmap item: none open — feed the queue.
-
-### Recently shipped
-
-- **#32** — Typecheck self-sufficient fix (workslo/fleet PR #14). Closed.
-- **#30** — memory-lint two-tier caps (PR #31). Closed.
-- **#24** — bin/memory-lint programmatic corpus health checks (PR #29). Closed.
-- **#26** — CI workflow. BLOCKED (not shipped).
-- **#25** — workerd/bun shim fix. Closed.
-- **#13** — Consolidation override review. Closed.
-- **#16** — Re-warming check. Closed (wontfix).
-- **#14** — Scratch triage. Closed.
-- **#3, #5, #7, #9** — Portraits, reference skills, README, template. Merged.
+(Undated "Open issues / Queue status / Recently shipped" blocks from the
+Sep 6 era removed Sep 13 — they presented long-closed issues as open;
+git history preserves them.)
 
 ## Original template notes (preserved for reference)
 

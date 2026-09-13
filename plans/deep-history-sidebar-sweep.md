@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: executed
 date: 2026-09-12
 links:
   spec: specs/deep-history-sidebar-sweep-spec.md (PR #66 — approved Sep 12)

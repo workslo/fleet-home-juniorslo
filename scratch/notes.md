@@ -1,6 +1,19 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-13, dev routine 2 PM MDT)
+## Current state (updated 2026-09-14, dev routine 2 PM MDT)
+
+Dev routine pulled #70 (queue order per the merged pipeline spec's
+Migrations; #58/#59/#62 green-lit Sep 14 but sequenced behind #70–72
+per the audit pacing and the spec's migration order). **First artifact
+filed: `plans/bin-move-out.md`** — inventory of all 13 live bin/ tools,
+two decision points for review (D1: the 42 MB vendored `gh` binary —
+recommend exclude; D2: the retired transcript-diff pair — recommend
+migrate as-is), characterization-first phasing (pin → move → sync →
+smoke), deployment cutover from origin/main. PR open for Shane's
+review — no self-merge per his Sep 14 word. The plan ends before
+build; execution starts only on his approval.
+
+## Prior state (updated 2026-09-13, dev routine 2 PM MDT)
 
 Dev routine pulled #63 (oldest actionable item — #58/#59/#62 were filed
 without labels and are parked on Shane's go) — **stamp-repair pass

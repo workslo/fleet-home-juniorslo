@@ -7,6 +7,7 @@ links:
   - "Ratified in conversation, Sep 11, 2026, ~6:20–7:40 PM MDT"
   - "Prior art: repos/agent-skills — spec-driven-development, adoption-guide.md (Path B)"
   - "Sibling: home-remote sketch (workslo/home-jr) — separate spec, not this one"
+  - "Plan (Migrations §1): plans/bin-move-out.md — issue #70"
 ---
 
 # Artifact Pipeline — Where Specs, Plans, and Files Live

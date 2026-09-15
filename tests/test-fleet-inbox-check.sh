@@ -11,6 +11,18 @@ SCRIPT="python3 $(cd "$(dirname "$0")/.." && pwd)/bin/fleet-inbox-check"
 PASS=0
 FAIL=0
 
+# Live-API gate (skip-with-note, same convention as run-all's bun skip):
+# every test below queries the real AgentMail API through
+# bin/fleet-inbox-check, which pulls its key from the credential vault.
+# On runners without the vault (GitHub Actions — caught red on PR #76,
+# Sep 15: the suite failed CI while passing locally), the script errors
+# before printing anything. Skip rather than fail; local runs stay live.
+if ! assistant credentials reveal --service agentmail --field api_key >/dev/null 2>&1; then
+    echo "  SKIP: live-API suite — AgentMail credentials not reachable on this runner"
+    echo "=== Results: 0 passed, 0 failed (SKIPPED) ==="
+    exit 0
+fi
+
 assert_contains() {
     local label="$1"
     local haystack="$2"

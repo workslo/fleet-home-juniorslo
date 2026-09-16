@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# gh-api — fresh-token GitHub API access for JuniorSLO's seat.
+#
+# The installation token expires every ~1 hour. Cached copies (the old
+# `.gh-app-token` file, tokens embedded in git remote URLs) go stale and
+# produce 401 "Bad credentials". This wrapper makes minting fresh the
+# ONLY path: every invocation gets a brand-new token from
+# bin/gh-app-token.mjs and uses it immediately.
+#
+# Usage:
+#   bin/gh-api <api-path> [curl args...]
+#       Mint fresh and call the GitHub API. Extra args pass through to curl
+#       (so -X POST, -d, -i, etc. work). The path is appended to
+#       https://api.github.com/ and the response body is printed.
+#       *** PATH MUST BE THE FIRST ARGUMENT. The wrapper treats $1 as the
+#       path — `bin/gh-api -X POST <path>` silently GETs /-X and returns a
+#       misleading 404 (caught live Sep 6: three "permission failure" reads
+#       that were actually this ordering bug). Correct order:
+#       bin/gh-api repos/owner/repo/pulls -X POST -d '{...}'
+#
+#   bin/gh-api --set-remote <repo-dir>
+#       Rewrite the repo's `origin` remote URL with a fresh token, keeping
+#       the host and repo path. Run before fetch/push. Do the fetch in the
+#       SAME bash invocation (each bash call resets cwd).
+#
+#   bin/gh-api --token
+#       Print a fresh token (for the rare case curl isn't the right tool).
+#
+# Examples:
+#   bin/gh-api repos/workslo/fleet/pulls/25
+#   bin/gh-api repos/workslo/fleet/issues/3/comments | python3 -m json.tool
+#   bin/gh-api --set-remote /workspace/repos/fleet && git -C /workspace/repos/fleet fetch origin
+#   bin/gh-api repos/workslo/fleet/issues/3/comments -X POST -d '{"body":"shipped"}'
+
+set -euo pipefail
+
+WORKSPACE="/workspace"
+TOKEN_HELPER="$WORKSPACE/bin/gh-app-token.mjs"
+
+mint_token() {
+  # Since the Sep 12 guard, the helper NEVER prints the token (env-only
+  # delivery) — bare runs are refused. The token must arrive via the child
+  # env: run through the wrapper, e.g.:
+  #   node bin/gh-app-token.mjs -- bin/gh-api <api-path> ...
+  local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+  if [[ -z "$token" ]]; then
+    echo "gh-api: no GH_TOKEN/GITHUB_TOKEN in env (the guard removed stdout token delivery). Run through the wrapper:" >&2
+    echo '  node bin/gh-app-token.mjs -- bin/gh-api <api-path> [curl args...]' >&2
+    exit 2
+  fi
+  # Guard against the truncation-at-dot class: the token contains dots.
+  if [[ "$token" != *.*.* ]]; then
+    echo "gh-api: token looks truncated (missing JWT segments)" >&2
+    exit 2
+  fi
+  printf '%s' "$token"
+}
+
+case "${1:-}" in
+  --token)
+    mint_token
+    exit 0
+    ;;
+  --set-remote)
+    repo_dir="${2:?usage: gh-api --set-remote <repo-dir>}"
+    url="$(git -C "$repo_dir" config --get remote.origin.url)"
+    if [[ "$url" != *x-access-token:*@github.com* ]]; then
+      echo "gh-api: origin does not use x-access-token format: $url" >&2
+      exit 3
+    fi
+    fresh="$(mint_token)"
+    new_url="$(printf '%s' "$url" | sed -E 's#x-access-token:[^@]+@#x-access-token:'"$fresh"'@#')"
+    git -C "$repo_dir" remote set-url origin "$new_url"
+    echo "gh-api: origin token refreshed for $repo_dir"
+    exit 0
+    ;;
+  --help|-h)
+    sed -n '2,30p' "$0"
+    exit 0
+    ;;
+  "")
+    echo "usage: gh-api <api-path> [curl args...] | --set-remote <repo-dir> | --token" >&2
+    exit 1
+    ;;
+  *)
+    path="$1"
+    shift
+    token="$(mint_token)"
+    exec curl -s -H "Authorization: Bearer $token" \
+      -H "Accept: application/vnd.github+json" \
+      "https://api.github.com/$path" "$@"
+    ;;
+esac

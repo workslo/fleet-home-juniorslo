@@ -1,0 +1,5 @@
+#!/bin/sh
+# bin/now — both zones, one shot. Never hand-convert. (Slo/Jr time standard, rule 4)
+printf '%s  (%s UTC)\n' \
+  "$(TZ=America/Denver date +'%Y-%m-%d %I:%M %p %Z')" \
+  "$(date -u +'%Y-%m-%d %H:%M')"

@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+"""Check the Fleet Mail inbox (AgentMail) for incoming messages.
+
+Queries the AgentMail API for received messages at jrslo-fleet@agentmail.to,
+filters out messages sent by me, and prints a compact summary suitable for
+heartbeat consumption. Exits 0 with a one-line "no messages" report when the
+inbox is empty of incoming mail.
+
+Usage:
+    python3 bin/fleet-inbox-check [--hours N] [--json] [--full]
+
+    --hours N   Only show messages newer than N hours (default: 72)
+    --json      Output machine-readable JSON instead of text
+    --full      Also fetch and print full body text for unread messages
+                (uses the message detail endpoint with correct encoding)
+
+Created Aug 16, 2026 — heartbeats were checking native Vellum email (always
+empty) instead of the AgentMail inbox where Fleet correspondence actually
+arrives. This script closes that gap. The --full flag was added Aug 17 after
+a heartbeat spent 10+ tool calls manually reverse-engineering the message
+detail API that this script already knew how to call.
+"""
+import json
+import os
+import subprocess
+import sys
+import urllib.parse
+import urllib.request
+from datetime import datetime, timezone, timedelta
+
+INBOX = "jrslo-fleet@agentmail.to"
+API_BASE = "https://api.agentmail.to/v0"
+
+
+def get_api_key():
+    """Retrieve the AgentMail API key from the credential vault."""
+    result = subprocess.run(
+        ["assistant", "credentials", "reveal", "--service", "agentmail", "--field", "api_key"],
+        capture_output=True, text=True
+    )
+    key = result.stdout.strip()
+    if not key:
+        print("ERROR: could not retrieve agentmail API key from vault.", file=sys.stderr)
+        sys.exit(1)
+    return key
+
+
+def fetch_messages(api_key, limit=50):
+    """Fetch recent messages from the AgentMail inbox."""
+    url = f"{API_BASE}/inboxes/{INBOX}/messages?limit={limit}"
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
+    resp = urllib.request.urlopen(req)
+    data = json.loads(resp.read())
+    if isinstance(data, dict) and "messages" in data:
+        return data["messages"]
+    if isinstance(data, list):
+        return data
+    return []
+
+
+def filter_incoming(messages):
+    """Return only received messages (not sent by me), newest first."""
+    incoming = [m for m in messages if "received" in m.get("labels", [])]
+    incoming.sort(key=lambda m: m.get("timestamp", ""), reverse=True)
+    return incoming
+
+
+def parse_ts(ts_str):
+    """Parse an AgentMail ISO-8601 UTC timestamp. Returns datetime or None."""
+    try:
+        return datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
+def compute_reply_states(messages):
+    """Map message_id -> "acked" | "owed" for every received message.
+
+    A received message is ACKED when a sent-by-me message exists in the SAME
+    thread with a LATER timestamp; otherwise OWED. Exists because sent replies
+    carry no 'received' label and are invisible in the received-message list —
+    deciding reply-owed from that list alone produced a duplicate ack to Astra
+    on Sep 9 (the mailbox variant's fourth surface). Thread state is the only
+    authority for "have I replied?"
+
+    Pure function over the message list — no network, unit-testable. Safe at
+    any limit: a sent reply is always LATER than the letter it answers, so if
+    the letter made the fetch window, the reply is at least as recent and is
+    in the same window.
+
+    Thread_id fallback (Sep 9, verified live): AgentMail itself fragments
+    thread_ids — one email conversation (blocklist thread) carried three
+    different thread_ids across its replies, so thread_id-only grouping
+    produced false OWED flags on letters that HAD been answered. A false OWED
+    invites duplicate acks — the exact failure class this script exists to
+    prevent. Fallback: if no later sent reply matches the letter's thread_id,
+    also check for a later sent reply under the same normalized subject
+    (Re:/Fwd: stripped, whitespace collapsed). Subjects in this inbox are
+    long and specific, so cross-conversation collisions are unlikely; the
+    checklist's fetch-the-thread-before-replaying rule stays the authority
+    on any action either way.
+    """
+    sent = [m for m in messages if "received" not in m.get("labels", [])]
+    sent_times = []
+    for s in sent:
+        tid = s.get("thread_id")
+        ts = parse_ts(s.get("timestamp"))
+        if tid and ts:
+            sent_times.append((tid, ts))
+    sent_by_subject = {}
+    for s in sent:
+        subj = _norm_subject(s.get("subject"))
+        ts = parse_ts(s.get("timestamp"))
+        if subj and ts:
+            sent_by_subject.setdefault(subj, []).append(ts)
+
+    states = {}
+    for m in messages:
+        if "received" not in m.get("labels", []):
+            continue
+        tid = m.get("thread_id")
+        ts = parse_ts(m.get("timestamp"))
+        acked = False
+        if ts is not None:
+            if tid:
+                acked = any(s_tid == tid and s_ts > ts for s_tid, s_ts in sent_times)
+            if not acked:
+                subj_times = sent_by_subject.get(_norm_subject(m.get("subject")), [])
+                acked = any(s_ts > ts for s_ts in subj_times)
+        states[m.get("message_id")] = "acked" if acked else "owed"
+    return states
+
+
+def _norm_subject(subj):
+    """Normalize a subject for fallback grouping: strip Re:/Fwd:/Fw: prefixes
+    and collapse whitespace, so fragmented thread_ids of one conversation
+    still group together."""
+    s = (subj or "").strip().lower()
+    changed = True
+    while changed:
+        changed = False
+        for prefix in ("re:", "fwd:", "fw:"):
+            if s.startswith(prefix):
+                s = s[len(prefix):].strip()
+                changed = True
+    return " ".join(s.split())
+
+
+def mark_message_read(api_key, message_id):
+    """Mark a message as read by removing the 'unread' label via PATCH.
+    Returns True on success, False on failure.
+    Added Sep 4, 2026 — the reply API doesn't mark originals as read,
+    causing future heartbeat sessions to misjudge inbox state.
+    """
+    encoded = urllib.parse.quote(message_id, safe="")
+    url = f"{API_BASE}/inboxes/{INBOX}/messages/{encoded}"
+    req = urllib.request.Request(
+        url,
+        data=json.dumps({"remove_labels": ["unread"]}).encode(),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="PATCH",
+    )
+    try:
+        urllib.request.urlopen(req, timeout=15)
+        return True
+    except Exception:
+        return False
+
+
+def fetch_full_body(api_key, message_id):
+    """Fetch the full body text of a single message by its message_id.
+
+    The message_id must be the full angle-bracketed RFC-style ID as returned
+    by the list endpoint. It gets URL-encoded with safe='' so that @, <, >
+    are all percent-encoded. Returns the extracted_text (reply body with
+    quoted history stripped), falling back to text (full body).
+    """
+    encoded = urllib.parse.quote(message_id, safe="")
+    url = f"{API_BASE}/inboxes/{INBOX}/messages/{encoded}"
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
+    resp = urllib.request.urlopen(req)
+    data = json.loads(resp.read())
+    return data.get("extracted_text") or data.get("text") or "(no body found)"
+
+
+def age_string(ts_str, now):
+    """Human-readable age from a timestamp string."""
+    try:
+        ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+    except (ValueError, AttributeError):
+        return "unknown age"
+    delta = now - ts
+    hours = delta.total_seconds() / 3600
+    if hours < 1:
+        return f"{int(delta.total_seconds() / 60)}m ago"
+    if hours < 24:
+        return f"{hours:.1f}h ago"
+    return f"{delta.days}d {int(hours % 24)}h ago"
+
+
+def main():
+    hours_threshold = 72
+    json_output = False
+    full_bodies = False
+    mark_read = False
+
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--hours" and i + 1 < len(args):
+            hours_threshold = int(args[i + 1])
+            i += 2
+        elif args[i] == "--json":
+            json_output = True
+            i += 1
+        elif args[i] == "--full":
+            full_bodies = True
+            i += 1
+        elif args[i] == "--mark-read":
+            mark_read = True
+            i += 1
+        else:
+            i += 1
+
+    api_key = get_api_key()
+    messages = fetch_messages(api_key)
+    incoming = filter_incoming(messages)
+
+    # Mark all unread incoming messages as read
+    if mark_read:
+        unread = [m for m in incoming if "unread" in m.get("labels", [])]
+        if not unread:
+            print(f"Fleet inbox ({INBOX}): no unread messages to mark.")
+            return
+        marked = 0
+        for m in unread:
+            if mark_message_read(api_key, m["message_id"]):
+                marked += 1
+        print(f"Fleet inbox ({INBOX}): marked {marked}/{len(unread)} unread messages as read.")
+        return
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=hours_threshold)
+
+    reply_states = compute_reply_states(messages)
+
+    # All incoming, plus a flag for which are within the threshold
+    recent = []
+    for m in incoming:
+        try:
+            ts = datetime.fromisoformat(m["timestamp"].replace("Z", "+00:00"))
+            is_recent = ts >= cutoff
+        except (ValueError, KeyError):
+            is_recent = True  # include if we can't parse
+        recent.append({
+            "timestamp": m.get("timestamp", "?"),
+            "from": m.get("from", "?"),
+            "subject": m.get("subject", "?"),
+            "preview": m.get("preview", "")[:120],
+            "thread_id": m.get("thread_id", "?"),
+            "message_id": m.get("message_id", ""),
+            "unread": "unread" in m.get("labels", []),
+            "reply_state": reply_states.get(m.get("message_id"), "owed"),
+            "age": age_string(m.get("timestamp"), now),
+            "within_threshold": is_recent,
+        })
+
+    if json_output:
+        print(json.dumps({
+            "inbox": INBOX,
+            "total_incoming": len(incoming),
+            "within_threshold": sum(1 for r in recent if r["within_threshold"]),
+            "hours_threshold": hours_threshold,
+            "messages": recent,
+        }, indent=2))
+        return
+
+    # Text output
+    if not incoming:
+        print(f"Fleet inbox ({INBOX}): no incoming messages.")
+        return
+
+    within = [r for r in recent if r["within_threshold"]]
+    older_unread = [r for r in recent if not r["within_threshold"] and r["unread"]]
+    print(f"Fleet inbox ({INBOX}): {len(incoming)} incoming total, {len(within)} in last {hours_threshold}h.")
+    if older_unread:
+        print(f"  !! {len(older_unread)} UNREAD outside the {hours_threshold}h window — these still need eyes.")
+    print()
+    print("  Flags: [OWED] no sent reply later in the thread — needs a reply or explicit disposition;")
+    print("         [ACKED] a sent reply exists later in the thread; [UNREAD] label still set (Shane's queue view)")
+    print()
+    for r in within:
+        unread_flag = " [UNREAD]" if r["unread"] else ""
+        reply_flag = " [OWED]" if r["reply_state"] == "owed" else " [ACKED]"
+        print(f"  {r['age']}{reply_flag}{unread_flag} | {r['from']}")
+        print(f"    subj: {r['subject']}")
+        print(f"    preview: {r['preview']}")
+        if full_bodies and (r["unread"] or r["reply_state"] == "owed"):
+            # Fetch full body for unread or reply-owed messages
+            msg_id = r.get("message_id")
+            if msg_id:
+                try:
+                    body = fetch_full_body(api_key, msg_id)
+                    print(f"    --- full body ---")
+                    # Indent each line for readability
+                    for line in body.split("\n"):
+                        print(f"    {line}")
+                    print(f"    --- end body ---")
+                except Exception as e:
+                    print(f"    [body fetch failed: {e}]")
+        print()
+
+    if older_unread:
+        print("Unread beyond the window (checklist: flag anything older than 24h):")
+        print()
+        for r in older_unread:
+            reply_flag = " [OWED]" if r["reply_state"] == "owed" else " [ACKED]"
+            print(f"  {r['age']}{reply_flag} [UNREAD] | {r['from']}")
+            print(f"    subj: {r['subject']}")
+            print(f"    preview: {r['preview']}")
+            if full_bodies:
+                msg_id = r.get("message_id")
+                if msg_id:
+                    try:
+                        body = fetch_full_body(api_key, msg_id)
+                        print(f"    --- full body ---")
+                        for line in body.split("\n"):
+                            print(f"    {line}")
+                        print(f"    --- end body ---")
+                    except Exception as e:
+                        print(f"    [body fetch failed: {e}]")
+            print()
+
+
+if __name__ == "__main__":
+    main()

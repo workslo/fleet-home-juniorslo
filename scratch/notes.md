@@ -1,6 +1,27 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-14, dev routine 2 PM MDT)
+## Current state (updated 2026-09-15, dev routine 2 PM MDT)
+
+Dev routine executed **#70 Phase A→B (build per approved plan, PR #75
+merged Sep 14)**: all pinning done against live copies BEFORE any move
+(brownfield rule) — A0 twins re-verified identical (3/3), A2 pin runs
+green (8/8, 5/5, 11, 10, 13/0 live-API, memory-lint standing green),
+A3 five new characterization suites written and green against live
+(5, 3, 12, 21, 5). B: run-all.sh discovery extended (.sh + .test.mjs
+with bun skip-with-note), five suites ported (one authorized path
+adjustment: the inbox .sh suite's absolute /workspace/bin path →
+repo-relative), nine tools landed repo-side per D1=exclude gh /
+D2=migrate pair (cmp 9/9 byte-identical). Full run-all.sh green in the
+clone — all 14 suites, every count matching its pin receipt exactly.
+**Build PR open for Shane's review — no self-merge per his Sep 14
+word.** Phase C (live cutover) is post-merge only; Phase D (learning +
+close) after C. One build-time finding receipted: bun requires
+`.test`/`_test_`/`.spec` in test filenames — hyphen-prefix `.mjs`
+renames silently skip (pin-receipts.md). No CI on this repo (standing
+#26 workflows-permission blocker) — local run-all.sh green is the
+verification surface.
+
+## Prior state (updated 2026-09-14, dev routine 2 PM MDT)
 
 Dev routine pulled #70 (queue order per the merged pipeline spec's
 Migrations; #58/#59/#62 green-lit Sep 14 but sequenced behind #70–72

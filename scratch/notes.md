@@ -1,6 +1,31 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-15, dev routine 2 PM MDT)
+## Current state (updated 2026-09-16, dev routine 2 PM MDT)
+
+Dev routine executed **#70 Phase C→D (cutover + close, per the approved plan,
+after Shane's merge of PR #76)**. C1: pre-copy drift check found zero drift
+(11/11 identical), repo `bin/*` synced over live, post-copy cmp 11/11
+byte-identical to origin/main; unmanaged set untouched by design — vendored
+`gh` (D1), `__pycache__/`, and Shane's Sep 16 memory-lint GATE STUB, which
+survived the cutover because repo `bin/` never contained memory-lint (repo
+home = `checks/memory-lint`); the preserved real script
+`bin/memory-lint.gated` verified byte-identical to `checks/memory-lint` —
+ungating remains Shane's call only. C2: every tool smoked live-side green
+(receipts: `experiments/bin-move-out/cutover.md`), including the gate stub
+itself (exit 77, intact); two smokes were mis-designed from unread argument
+contracts (the transcript pair — one ran the full mechanism live, one wrote
+a junk file) — tools fine, byproducts deleted same turn, miss receipted.
+C3: caller sweep — zero callers broken; the rm-guard reference page flipped
+to repo-canonical; the dev-routine skill's four pre-guard TOKEN-capture
+snippets fixed to the wrapper form (this run's own PULL step failed on
+them); four more skills' stale snippets receipted + queued as a follow-up.
+D: learning note filed in the parent spec's closing section, plan status →
+executed, **#70 CLOSED with the full chain linked**; the Phase D PR (this
+one) carries the spec closing, the cutover receipts, and this notes update.
+**Queue advances to #71 (scratch cleanup — spec AND plan attached to the
+issue before build, per the Sep 13 directive).**
+
+## Prior state (updated 2026-09-15, dev routine 2 PM MDT)
 
 Dev routine executed **#70 Phase A→B (build per approved plan, PR #75
 merged Sep 14)**: all pinning done against live copies BEFORE any move

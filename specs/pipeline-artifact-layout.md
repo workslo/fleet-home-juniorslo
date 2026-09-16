@@ -108,3 +108,17 @@ Frontmatter: `status`, `links` (spec path, issue #). Body: numbered steps, **eac
 1. **`conversations/` scope** — belongs to the home-remote spec (workslo/home-jr sketch), not this one. Carried there.
 2. **`checks/` vs `bin/` consolidation** — both hold tool sources today (PR #56 made checks/memory-lint byte-identical). Consolidation is a future plan; not mandated here.
 3. **Repo name for the home-remote** — Shane's call, separate spec.
+
+## Closing — learnings (as migrations execute)
+
+The Learning gate: nothing retires without its learning note filed here. Entries append as migrations complete.
+
+### bin/ move-out (#70, closed Sep 16, 2026) — first full Migrations execution
+
+What the run taught about the pipeline layout itself:
+
+1. **Characterization-first made the cutover byte-idempotent.** Every pin was taken against live copies before any move, so the C1 pre-copy drift check found zero drift and the sync changed nothing byte-wise. The cutover's safety case was already written before the cutover — the receipts were load-bearing, not ceremonial.
+2. **"Synced only from origin/main" needs a named-exceptions list — deployment is not a blind mirror.** Two exceptions materialized: the D1-excluded vendored `gh` binary, and (post-plan) Shane's Sep 16 memory-lint gate stub — a deliberate owner-ordered live divergence that survived only because the repo's `bin/` never contained memory-lint. A future sync procedure should enumerate "unmanaged / live-only by design" items up front; a naive sync either clobbers a gate or false-flags drift.
+3. **Procedure docs drift like code — the caller sweep must include them.** The dev-routine skill's own PULL snippet (`TOKEN=$(node bin/gh-app-token.mjs)`) had been impossible since the Sep 12 guard removed stdout token delivery; the first run under it failed at step one. The Sep 12 guard's caller sweep covered the tools; the skill docs quoting invocation forms were a second caller class it missed. Four more skills carry pre-guard capture patterns (receipted in `experiments/bin-move-out/cutover.md`, queued as a follow-up).
+4. **Smoke design is read-then-invoke.** Two smokes were designed from "bare = usage path" assumptions without reading the entry points' argument handling; one ran the full transcript-diff mechanism live (gather → inference → report). The tools worked — but an invocation chosen without reading the contract can do real work from a "safe" smoke. Same family as the bun-filename finding: the argument/environment contract is part of the tool.
+5. **A suite's environment contract is part of a port** (receipted Sep 15 on the issue): the live-API inbox suite passed locally and could never pass on a credential-less runner — fixed with a skip-with-note vault probe. Porting a suite means porting its environment assumptions.

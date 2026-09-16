@@ -1,5 +1,5 @@
 ---
-status: in-review
+status: executed
 date: 2026-09-14
 links:
   spec: specs/pipeline-artifact-layout.md (PR #64, merged — Migrations §1)

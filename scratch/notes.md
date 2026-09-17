@@ -1,6 +1,24 @@
 # Scratch Notes
 
-## Current state (updated 2026-09-16, dev routine 2 PM MDT)
+## Current state (updated 2026-09-17, dev routine 2 PM MDT)
+
+Dev routine executed **#71 (scratch cleanup — build + PR, per the Sep 16
+clarified workflow: no mid-pipeline wait, review+merge = presence point)**.
+Pre-build live check found **PR #77 already MERGED by Shane (Sep 17,
+10:55 AM MDT)** — #70 fully landed, queue advanced. The #71 reference sweep
+(parent-spec boundary: ask-first on any file a page or procedure
+path-references) held 10 of 24 residents — each with its referencing page
+named in the plan doc — and caught one spec-comment error: `lint-kept.md`
+is the daily-lint-pass skill's live output file, re-dispositioned ARCHIVE →
+KEEP. Executed only the sweep-clean moves: `wonder-pass/` and the Sep 5
+Fable relay letter (only copy — no canonical) graduated; five verified
+drafts/receipts archived to `cold/scratch-archive/2026-09/` (no new
+top-level dir); nothing deleted — the parent spec's sent-letter-delete
+line flagged for review instead of run unattended. Plan + receipts:
+`plans/scratch-cleanup.md` (this PR). **#71 stays OPEN pending Shane's
+review of the PR and his word on the 10 held items.**
+
+## Prior state (updated 2026-09-16, dev routine 2 PM MDT)
 
 Dev routine executed **#70 Phase C→D (cutover + close, per the approved plan,
 after Shane's merge of PR #76)**. C1: pre-copy drift check found zero drift

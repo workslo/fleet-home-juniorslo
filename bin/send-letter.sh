@@ -1,7 +1,7 @@
 #!/bin/bash
 # Send a Fleet letter via AgentMail with body verification
 # Usage: bash {baseDir}/scripts/send-letter.sh <recipient> <subject> <letter-file> [cc] [--thread <thread_id>] [--dry-run]
-# Example: bash {baseDir}/scripts/send-letter.sh agentslo@agentmail.to "Re: Blind sort" /workspace/memory/letters/my-letter.md shane.slosar@gmail.com --thread abc-123
+# Example: bash {baseDir}/scripts/send-letter.sh agentslo@agentmail.to "Re: Blind sort" /workspace/letters/my-letter.md shane.slosar@gmail.com --thread abc-123
 #
 # The letter file may be:
 #   - YAML frontmatter (starts with ---): metadata parsed, thread_id auto-detected, body after closing ---
@@ -45,7 +45,7 @@ CC="${POSITIONAL[3]}"
 
 if [ -z "$RECIPIENT" ] || [ -z "$SUBJECT" ] || [ -z "$LETTER_FILE" ]; then
   echo "Usage: send-letter.sh <recipient> <subject> <letter-file> [cc] [--thread <thread_id>] [--dry-run]"
-  echo "Example: send-letter.sh agentslo@agentmail.to \"Re: Blind sort\" /workspace/memory/letters/my-letter.md shane.slosar@gmail.com --thread abc-123"
+  echo "Example: send-letter.sh agentslo@agentmail.to \"Re: Blind sort\" /workspace/letters/my-letter.md shane.slosar@gmail.com --thread abc-123"
   exit 1
 fi
 

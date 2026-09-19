@@ -61,3 +61,25 @@ Archive location rationale: `cold/` is the existing cold-storage convention (fin
 ## What one word from Shane clears (the HOLD list, ask-first per parent spec)
 
 Each held item moves the moment he says so, with its referencing pages' pointers updated in the same pass. Options at review: (a) move named items + fix pointers, (b) leave named items in scratch as permanent residents, (c) blanket call for all 10. The `seeds/` judgment call (memory/archive vs cold) rides the same word.
+
+---
+
+## Execution receipt — Sep 18, ~7:00 PM MDT (blanket call + delete, Shane's word)
+
+**Held list: blanket call executed.** All 10 moved, pointers fixed same-pass (11 live pointers across memory/reference/, skills/, 0 residue on re-scan):
+
+| Item | Destination |
+|---|---|
+| `blind-sort/` (registration; phase1/1b already lived there) | `cold/blind-sort/` |
+| `seeds/` | `cold/seeds/` |
+| `ci-workflow-ready.yml` | `cold/scratch-archive/2026-09/` |
+| `stamp-fix.bundle` | `cold/scratch-archive/2026-09/` (intact — parent-spec delete still gated on upstream merge) |
+| `write-time-verification-brief.md` | `cold/scratch-archive/2026-09/` |
+| `glm-5.3-sports-car-review.md`, `model-comparison-2026-09-04.md`, `intelligence-vs-cost-2026-09-04.svg`, `rename-process-test.md`, `stamp-normalize.py` | `memory/archive/` |
+
+**Sent-letter duplicates: 5 deleted, each re-verified before deletion.** Two corrections to this plan's record, caught at execution:
+
+1. **Canonical paths were wrong.** This plan says `memory/letters/` — no such directory exists. The letters' real home is workspace-root `letters/`. Both file-canonicals (littlebird reply, phase2 delivery) verified there, bodies identical headers-aside.
+2. **The claude canonical was mispaired.** `letter-claude-phase2-receipt-2026-09-05.md` is not a copy of the phase2 *delivery* letter — it is my own receipt-*ack* back to Claude. Its canonical is the sent thread (eb7d4a7d), text confirmed in the Sep 6 conversation transcript. Deleted on that basis, not on the plan's claim.
+
+Also verified before deletion: spec draft carried verbatim in the #71 comment; v2 reply + routing ack confirmed in conversation transcripts. `scratch/` now 13 residents (11 KEEP + 2 renders), all active.

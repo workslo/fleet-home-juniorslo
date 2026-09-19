@@ -79,7 +79,7 @@ Each held item moves the moment he says so, with its referencing pages' pointers
 
 **Sent-letter duplicates: 5 deleted, each re-verified before deletion.** Two corrections to this plan's record, caught at execution:
 
-1. **Canonical paths were wrong.** This plan says `memory/letters/` — no such directory exists. The letters' real home is workspace-root `letters/`. Both file-canonicals (littlebird reply, phase2 delivery) verified there, bodies identical headers-aside.
+1. **Canonical paths went stale mid-flight (plan was right when written).** This plan says `memory/letters/` — true at drafting (Sep 17 ~2 PM): commit `21585236` (Sep 17 ~9:36 PM MDT) renamed the whole directory to workspace-root `letters/` that evening, before execution. Both file-canonicals (littlebird reply, phase2 delivery) verified at the new home, bodies identical headers-aside. Lesson: a plan's paths are true-at-write-time claims — re-locate, don't trust, when executing later.
 2. **The claude canonical was mispaired.** `letter-claude-phase2-receipt-2026-09-05.md` is not a copy of the phase2 *delivery* letter — it is my own receipt-*ack* back to Claude. Its canonical is the sent thread (eb7d4a7d), text confirmed in the Sep 6 conversation transcript. Deleted on that basis, not on the plan's claim.
 
 Also verified before deletion: spec draft carried verbatim in the #71 comment; v2 reply + routing ack confirmed in conversation transcripts. `scratch/` now 13 residents (11 KEEP + 2 renders), all active.
